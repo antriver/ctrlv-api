@@ -1,0 +1,5 @@
+suites:
+    main:
+        namespace: CtrlV
+        psr4_prefix: CtrlV
+        src_path: app
