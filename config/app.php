@@ -26,7 +26,17 @@ return [
     |
     */
 
-    'url' => 'http://localhost',
+    'url' => env('APP_URL', false),
+
+    'data_url' => env('APP_DATA_URL', false),
+    'image_url' => env('APP_DATA_URL', false) . 'img/',
+    'annotation_url' => env('APP_DATA_URL', false) . 'annotation/',
+    'thumbnail_url' => env('APP_DATA_URL', false) . 'thumb/',
+
+    'data_dir' => env('APP_DATA_DIR', false),
+    'image_dir' => env('APP_DATA_DIR', false) . 'img/',
+    'annotation_dir' => env('APP_DATA_DIR', false) . 'annotation/',
+    'thumbnail_dir' => env('APP_DATA_DIR', false) . 'thumb/',
 
     /*
     |--------------------------------------------------------------------------
@@ -144,6 +154,8 @@ return [
         CtrlV\Providers\EventServiceProvider::class,
         CtrlV\Providers\RouteServiceProvider::class,
 
+        Intervention\Image\ImageServiceProvider::class
+
     ],
 
     /*
@@ -191,6 +203,8 @@ return [
         'URL'       => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View'      => Illuminate\Support\Facades\View::class,
+
+        'InterventionFacade' => Intervention\Image\Facades\Image::class
 
     ],
 

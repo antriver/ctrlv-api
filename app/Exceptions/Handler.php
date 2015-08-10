@@ -3,6 +3,7 @@
 namespace CtrlV\Exceptions;
 
 use Exception;
+use Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
@@ -39,6 +40,25 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $e)
     {
-        return parent::render($request, $e);
+        if ($e instanceof HttpException) {
+            $status = $e->getStatusCode();
+        } else {
+            if (config('app.debug')) {
+                return parent::render($request, $e);
+            }
+            $status = 500;
+        }
+
+        $type = explode('\\', get_class($e));
+        $type = array_pop($type);
+
+        $response = [
+            'error' => true,
+            'message' => $e->getMessage(),
+            'status' => $status,
+            'type' => $type
+        ];
+
+        return Response::json($response, $status);
     }
 }

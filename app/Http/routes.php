@@ -11,6 +11,10 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::model('image', '\CtrlV\Models\ImageRow');
+
+Route::get('/', ['uses' => 'RootController@getIndex']);
+
+Route::controller('upload', 'UploadController');
+
+Route::resource('image', 'ImageController', ['only' => ['store', 'show', 'update', 'destroy']]);

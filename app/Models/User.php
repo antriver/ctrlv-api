@@ -1,6 +1,6 @@
 <?php
 
-namespace CtrlV;
+namespace CtrlV\Models;
 
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +11,8 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 class User extends Model implements AuthenticatableContract, CanResetPasswordContract
 {
     use Authenticatable, CanResetPassword;
+
+    public $primaryKey = 'userID';
 
     /**
      * The database table used by the model.

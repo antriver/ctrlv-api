@@ -28,7 +28,7 @@ return [
     |
     */
 
-    'model' => CtrlV\User::class,
+    'model' => CtrlV\Models\User::class,
 
     /*
     |--------------------------------------------------------------------------

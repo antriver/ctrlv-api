@@ -52,4 +52,16 @@ $app->singleton(
 |
 */
 
+$app->configureMonologUsing(function($monolog) use($app) {
+    $path = $app->storagePath() . '/logs/laravel.log';
+    $monolog->pushHandler(
+        $handler = new Monolog\Handler\RotatingFileHandler($path)
+    );
+    $handler->setFormatter(
+        $formatter = new Monolog\Formatter\LineFormatter(null, null, true, true)
+    );
+
+    $monolog->pushProcessor(new \Monolog\Processor\WebProcessor);
+});
+
 return $app;
