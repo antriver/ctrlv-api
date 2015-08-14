@@ -7,7 +7,6 @@ use Auth;
 use Config;
 use Exception;
 use Input;
-
 use Response;
 use CtrlV\Http\Requests;
 use CtrlV\Http\Controllers\Base\ApiController;
@@ -57,18 +56,17 @@ class ImageController extends ApiController
      */
     public function store(Request $request, ImageRepository $imageRepository)
     {
-        sleep(3);
+        sleep(1); // TODO remove this
 
         if ($request->has('base64')) {
-
             $image = $imageRepository->createFromBase64String($request->input('base64'));
 
         } elseif ($request->hasFile('file')) {
-
             $image = $imageRepository->createFromUploadedFile($request->file('file'));
 
         } else {
             throw new HttpException(400, 'Please provide a base64 image or uploaded file');
+
         }
 
         if (empty($image)) {

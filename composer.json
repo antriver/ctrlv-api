@@ -9,7 +9,8 @@
         "laravel/framework": "5.1.*",
         "kirkbushell/eloquence": "^1.4",
         "intervention/image": "^2.3",
-        "aws/aws-sdk-php-laravel": "^3.0"
+        "aws/aws-sdk-php-laravel": "^3.0",
+        "gabrielbull/browser": "^3.1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

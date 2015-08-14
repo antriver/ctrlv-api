@@ -15,6 +15,6 @@ Route::model('image', '\CtrlV\Models\ImageRow');
 
 Route::get('/', ['uses' => 'RootController@getIndex']);
 
-Route::controller('upload', 'UploadController');
+Route::controller('uploader', 'UploaderController');
 
 Route::resource('image', 'ImageController', ['only' => ['store', 'show', 'update', 'destroy']]);

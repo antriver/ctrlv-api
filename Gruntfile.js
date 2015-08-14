@@ -9,21 +9,21 @@ module.exports = function(grunt) {
     grunt.initConfig({
 
         less: {
-            'build-upload-less': {
+            'build-uploader-less': {
                 options: {
                     compress: true,
                     yuicompress: true,
                     sourceMap: true,
                     outputSourceFiles: true,
-                    sourceMapURL: 'upload.min.css.map',
+                    sourceMapURL: 'uploader.min.css.map',
                     sourceMapFilename: 'public/assets/build/' + timestamp + '/css/upload.min.css.map',
-                    sourceMapBasepath: 'resources/assets/less',
+                    sourceMapBasepath: 'resources/assets/less/uploader',
 
                 },
                 src: [
-                    'resources/assets/less/upload.less'
+                    'resources/assets/uploader/less/uploader.less'
                 ],
-                dest: 'public/assets/build/' + timestamp + '/css/upload.min.css'
+                dest: 'public/assets/build/' + timestamp + '/css/uploader.min.css'
             }
         },
 
@@ -33,12 +33,23 @@ module.exports = function(grunt) {
                 sourceMap: true,
                 sourceMapIncludeSources: true
             },
-            'build-upload-js': {
+
+            // Scripts used in the uploader popup
+            'build-uploader-js': {
                 src: [
-                    'resources/assets/js/ImagePaster.js',
-                    'resources/assets/js/upload.js'
+                    'resources/assets/js/src/ImagePaster.js',
+                    'resources/assets/uploader/js/uploader.js'
                 ],
-                dest: 'public/assets/build/' + timestamp + '/js/upload.min.js'
+                dest: 'public/assets/build/' + timestamp + '/js/uploader.min.js'
+            },
+
+            // Scripts used on third party sites to launch the uploader
+            'build-sdk-js': {
+                src: [
+                    'public/easyxdm/easyXDM.min.js',
+                    'resources/assets/sdk/js/upload.js'
+                ],
+                dest: 'public/upload.js'
             }
         },
 
@@ -55,12 +66,11 @@ module.exports = function(grunt) {
         },
 
         watch: {
-            'build': {
+            'uploader': {
                 files: [
-                    'resources/assets/less/**/*.*',
-                    'resources/assets/js/**/*.*'
+                    'resources/assets/uploader/**/*.*',
                 ],
-                tasks: ['build']
+                tasks: ['build-uploader']
             }
         },
 
@@ -71,17 +81,17 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-watch');
 
-    grunt.registerTask('build', function() {
+    grunt.registerTask('build-uploader', function() {
 
         // clean build folder
         grunt.task.run(['clean:pre-build']);
 
         // less -> minified css
         //grunt.task.run(['less:build-less']);
-        grunt.task.run(['less:build-upload-less']);
+        grunt.task.run(['less:build-uploader-less']);
 
         // minify js
-        grunt.task.run(['uglify:build-upload-js']);
+        grunt.task.run(['uglify:build-uploader-js']);
 
         // Save version number to be used in PHP
         grunt.task.run(['write-version']);
@@ -96,6 +106,12 @@ module.exports = function(grunt) {
         }
     });
 
+    /**
+     * Build the JS SDK to be used by third parties
+     */
+    grunt.registerTask('build-sdk', function() {
+        grunt.task.run(['uglify:build-sdk-js']);
+    });
 
 };
 
