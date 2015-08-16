@@ -241,13 +241,24 @@ class FileRepository
             return $result;
         }
 
-        $s3Client = $this->getS3Client();
-        $result['remote'] = $s3Client->deleteMatchingObjects($this->s3BucketName, $relativePath);
+        $result['remote'] = $this->deleteFromRemote($relativePath);
 
         $cacheManager = new CacheManager();
         $result['purge'] = $cacheManager->purge($relativePath);
 
         return $result;
+    }
+
+    /**
+     * Delete a file from remote only.
+     *
+     * @param  string $relativePath
+     * @return object
+     */
+    public function deleteFromRemote($relativePath)
+    {
+        $s3Client = $this->getS3Client();
+        return $s3Client->deleteMatchingObjects($this->s3BucketName, $relativePath);
     }
 
     /**

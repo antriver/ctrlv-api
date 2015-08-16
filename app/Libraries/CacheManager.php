@@ -41,7 +41,7 @@ class CacheManager
      * @param  string $relativePath
      * @return null
      */
-    private function purgeNginx($url)
+    public function purgeNginx($url)
     {
         $ch = curl_init($url);
 
@@ -50,13 +50,14 @@ class CacheManager
         curl_setopt($ch, CURLOPT_NOBODY, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('purge-cache: 1'));
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
 
         $result = curl_exec($ch);
 
-        return strpos($result, 'BYPASS') !== false;
+        return strpos($result, 'BYPASS') !== false || strpos($result, 'HTTP/1.1 40') !== false;
     }
 
-    private function purgeCloudFlare($url)
+    public function purgeCloudFlare($url)
     {
         $cf = new CloudFlare(Config::get('services.cloudflare.email'), Config::get('services.cloudflare.key'));
 
