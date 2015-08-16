@@ -44,9 +44,9 @@ class CachePurgeTest extends TestCase
 
         $this->assertEquals(200, $this->getHttpResponseCode($s3Url), $s3Url);
 
-        $this->assertEquals(200, $this->getHttpResponseCode($cloudflareUrl), $cloudflareUrl);
-
         $this->assertEquals(200, $this->getHttpResponseCode($imageDirectUrl), $imageDirectUrl);
+
+        $this->assertEquals(200, $this->getHttpResponseCode($cloudflareUrl), $cloudflareUrl);
 
 
         $fileRepositry->deleteFile('tests/' . $filename);
@@ -56,9 +56,9 @@ class CachePurgeTest extends TestCase
 
         $this->assertNotEquals(200, $this->getHttpResponseCode($s3Url), $s3Url);
 
-        $this->assertNotEquals(200, $this->getHttpResponseCode($cloudflareUrl), $cloudflareUrl);
-
         $this->assertNotEquals(200, $this->getHttpResponseCode($imageDirectUrl), $imageDirectUrl);
+
+        $this->assertNotEquals(200, $this->getHttpResponseCode($cloudflareUrl), $cloudflareUrl);
 
 
         //$this->assertNotEmpty(file_get_contents($s3Url));
