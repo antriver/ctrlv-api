@@ -48,9 +48,11 @@ class CachePurgeTest extends TestCase
 
         $this->assertEquals(200, $this->getHttpResponseCode($cloudflareUrl), $cloudflareUrl);
 
+        echo shell_exec("stat {$imagePath}");
 
         $fileRepositry->deleteFile('tests/' . $filename);
 
+        echo shell_exec("stat {$imagePath}");
 
         $this->assertFileNotExists($imagePath);
 
