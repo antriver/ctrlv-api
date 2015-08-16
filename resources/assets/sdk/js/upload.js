@@ -10,7 +10,7 @@ var ctrlv = {
 
     height: 400,
 
-    remote:'http://api.ctrlv.vagrant',
+    remote:'http://api.ctrlv.in',
 
     easyXDM: easyXDM.noConflict("ctrlv"),
 
@@ -53,4 +53,4 @@ var ctrlv = {
 
     }
 
-}
+};

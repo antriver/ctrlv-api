@@ -1,1 +1,1 @@
-<?php return array('version' => 201508150159);
+<?php return array('version' => 201508160229);
