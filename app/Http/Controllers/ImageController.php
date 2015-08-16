@@ -98,9 +98,11 @@ class ImageController extends ApiController
 
         $imageModel = $imageModel->fresh();
 
+        $imageModelArray = $imageModel->toArray();
+        $imageModelArray['key'] = $imageModel->key;
+
         return Response::json([
-            'image' => $imageModel,
-            'key' => $imageModel->key,
+            'image' => $imageModelArray,
             'success' => true,
         ]);
     }
