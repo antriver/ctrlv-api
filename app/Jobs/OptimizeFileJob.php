@@ -42,8 +42,8 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
 
         $this->optimizeImage();
 
-        print_r($fileRepository->copyToRemote($this->relativePath));
-        print_r($cacheManager->purge($this->relativePath));
+        $fileRepository->copyToRemote($this->relativePath);
+        $cacheManager->purge($this->relativePath);
     }
 
     private function optimizeImage()
@@ -78,8 +78,6 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
         }
 
         $cmd = "cp {$filePath} {$tempSourcePath} && $cmd && mv {$tempDestPath} {$filePath} && rm {$tempSourcePath}";
-
-        echo $cmd;
 
         passthru($cmd);
 

@@ -33,6 +33,9 @@ return [
     'annotation_url' => env('APP_DATA_URL', false) . 'annotation/',
     'thumbnail_url' => env('APP_DATA_URL', false) . 'thumb/',
 
+    // Serve from Nginx only, not cloudflare
+    'direct_data_url' => env('APP_DIRECT_DATA_URL', false),
+
     'data_dir' => env('APP_DATA_DIR', false),
     'image_dir' => env('APP_DATA_DIR', false) . 'img/',
     'annotation_dir' => env('APP_DATA_DIR', false) . 'annotation/',

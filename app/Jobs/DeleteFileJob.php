@@ -37,7 +37,7 @@ class DeleteFileJob extends Job implements SelfHandling, ShouldQueue
     {
         $this->logger->debug("Deleting file {$this->relativePath} attempt {$this->attempts()}");
 
-        print_r($fileRepository->deleteFile($this->relativePath, true));
+        $fileRepository->deleteFile($this->relativePath, true);
     }
 
 }
