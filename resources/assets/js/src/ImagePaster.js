@@ -229,7 +229,10 @@ ImagePaster.prototype.upload = function(format, data) {
                     message = 'The image took too long to upload';
                     break;
                 case 'error':
-                    if (jqXHR.status !== 0) {
+
+                    if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                        message = 'CtrlV server error (' +  jqXHR.responseJSON.errorType + ' ' +  jqXHR.responseJSON.message +')';
+                    } else if (jqXHR.status !== 0) {
                         message = 'CtrlV server error (' + jqXHR.status + ' ' + jqXHR.statusText +')';
                     } else {
                         message = 'Can\'t connect to the CtrlV server';

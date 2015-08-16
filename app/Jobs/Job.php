@@ -18,4 +18,24 @@ abstract class Job
     */
 
     use Queueable;
+
+    protected $logger = null;
+
+    protected function __construct()
+    {
+        $this->logger = $this->getJobLogger();
+    }
+
+    /**
+     * @return Monolog
+     */
+    private function getJobLogger()
+    {
+        $jobLogger = new \Monolog\Logger('Jobs');
+        $fileHandler = new \Monolog\Handler\RotatingFileHandler(storage_path() . '/logs/jobs.log');
+        $lineFormatter = new \Monolog\Formatter\LineFormatter("[%datetime%] %message% %context% %extra%\n", null, true, true);
+        $fileHandler->setFormatter($lineFormatter);
+        $jobLogger->pushHandler($fileHandler);
+        return $jobLogger;
+    }
 }

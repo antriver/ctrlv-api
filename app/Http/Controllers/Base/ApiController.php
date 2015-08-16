@@ -5,6 +5,7 @@ namespace CtrlV\Http\Controllers\Base;
 use Auth;
 use DB;
 use Input;
+use Response;
 use CtrlV\Http\Controllers\Base\BaseController;
 use CtrlV\Models\User;
 use CtrlV\Models\UserSession;
@@ -23,5 +24,21 @@ abstract class ApiController extends BaseController
                 }
             }
         }
+    }
+
+    /**
+     * Create a JSON error response
+     *
+     * @param  string $message
+     * @param  integer $code
+     * @return Response
+     */
+    protected function error($message, $status = 400)
+    {
+        return Response::json([
+            'error' => true,
+            'message' => $message,
+            'status' => $status
+        ], $status);
     }
 }

@@ -28,7 +28,7 @@ var ctrlv = {
 
         this.proxy = new this.easyXDM.Rpc({
 
-            swf: this.remote + '/easyxdm/easyxdm.swf',
+            swf: this.remote + '/assets/easyxdm/easyxdm.swf',
 
             remote: this.remote + '/uploader/xdframe',
 

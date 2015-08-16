@@ -19,9 +19,10 @@
             }
             ?>
 
-            {{-- <form action="/image" method="post" enctype="multipart/form-data" id="upload-alt-form">
+            <form action="/image" method="post" enctype="multipart/form-data" id="upload-alt-form">
                 Or select an image: <input type="file" name="file" />
-            </form> --}}
+                <input type="submit" value="Go" />
+            </form>
         </div>
     </div>
 

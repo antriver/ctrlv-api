@@ -27,7 +27,7 @@ class UploaderController extends BaseController
         $canPaste = !in_array($browserName, $crapBrowsers);
 
 
-        return View::make('upload.index', [
+        return View::make('uploader.index', [
             'isMac' => $isMac,
             'canPaste' => $canPaste
         ]);
@@ -35,7 +35,7 @@ class UploaderController extends BaseController
 
     public function getXdframe(Request $request)
     {
-        return View::make('upload.xdframe');
+        return View::make('uploader.xdframe');
     }
 
     public function getBlank(Request $request)

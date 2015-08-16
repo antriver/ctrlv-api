@@ -11,10 +11,21 @@
 |
 */
 
-Route::model('image', '\CtrlV\Models\ImageRow');
+Route::model('image', '\CtrlV\Models\ImageModel');
 
 Route::get('/', ['uses' => 'RootController@getIndex']);
 
 Route::controller('uploader', 'UploaderController');
+
+Route::get('image/{image}/image', ['uses' => 'ImageController@view']);
+Route::get('image/{image}/thumb', ['uses' => 'ImageController@viewThumbnail']);
+
+Route::post('image/{image}/rotate', ['uses' => 'ImageController@rotate']);
+Route::post('image/{image}/crop', ['uses' => 'ImageController@crop']);
+Route::post('image/{image}/uncrop', ['uses' => 'ImageController@uncrop']);
+
+Route::get('image/{image}/annotation', ['uses' => 'ImageController@viewAnnotation']);
+Route::post('image/{image}/annotation', ['uses' => 'ImageController@storeAnnotation']);
+Route::delete('image/{image}/annotation', ['uses' => 'ImageController@destroyAnnotation']);
 
 Route::resource('image', 'ImageController', ['only' => ['store', 'show', 'update', 'destroy']]);

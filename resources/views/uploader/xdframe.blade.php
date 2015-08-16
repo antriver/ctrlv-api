@@ -3,14 +3,14 @@
 <head>
 
 <title>easyXDM</title>
-<script type="text/javascript" src="/easyxdm/easyXDM.min.js"></script>
+<script type="text/javascript" src="/assets/easyxdm/easyXDM.min.js"></script>
 
 <script type="text/javascript">
 
     var popup, remoteapp;
 
     var proxy = new easyXDM.Rpc({
-        swf: '/easyxdm/easyxdm.swf'
+        swf: '/assets/easyxdm/easyxdm.swf'
     }, {
 
         local: {

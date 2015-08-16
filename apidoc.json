@@ -1,0 +1,10 @@
+{
+  "name": "CtrlV API",
+  "version": "0.1.0",
+  "description": "Upload images and stuff.",
+  "title": "CtrlV API",
+  "url" : "https://api.ctrlv.in",
+  "template": {
+    "withCompare": false
+  }
+}

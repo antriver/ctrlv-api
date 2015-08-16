@@ -35,12 +35,12 @@ return [
             'driver' => 'sync',
         ],
 
-        'database' => [
+        /*'database' => [
             'driver' => 'database',
             'table' => 'jobs',
             'queue' => 'default',
             'expire' => 60,
-        ],
+        ],*/
 
         'beanstalkd' => [
             'driver' => 'beanstalkd',
@@ -49,7 +49,7 @@ return [
             'ttr'    => 60,
         ],
 
-        'sqs' => [
+        /*'sqs' => [
             'driver' => 'sqs',
             'key'    => 'your-public-key',
             'secret' => 'your-secret-key',
@@ -71,7 +71,7 @@ return [
             'connection' => 'default',
             'queue'  => 'default',
             'expire' => 60,
-        ],
+        ],*/
 
     ],
 
@@ -87,7 +87,8 @@ return [
     */
 
     'failed' => [
-        'database' => 'mysql', 'table' => 'failed_jobs',
+        'database' => 'mysql',
+        'table' => 'failed_jobs',
     ],
 
 ];

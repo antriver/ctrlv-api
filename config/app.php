@@ -154,7 +154,8 @@ return [
         CtrlV\Providers\EventServiceProvider::class,
         CtrlV\Providers\RouteServiceProvider::class,
 
-        Intervention\Image\ImageServiceProvider::class
+        Intervention\Image\ImageServiceProvider::class,
+        Aws\Laravel\AwsServiceProvider::class
 
     ],
 
@@ -204,7 +205,8 @@ return [
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View'      => Illuminate\Support\Facades\View::class,
 
-        'InterventionFacade' => Intervention\Image\Facades\Image::class
+        'InterventionFacade' => Intervention\Image\Facades\Image::class,
+        'AWS' => Aws\Laravel\AwsFacade::class
 
     ],
 

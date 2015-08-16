@@ -45,8 +45,12 @@ module.exports = function(grunt) {
 
             // Scripts used on third party sites to launch the uploader
             'build-sdk-js': {
+                options: {
+                    mangle: false,
+                    sourceMap: false
+                },
                 src: [
-                    'public/easyxdm/easyXDM.min.js',
+                    'public/assets/easyxdm/easyXDM.min.js',
                     'resources/assets/sdk/js/upload.js'
                 ],
                 dest: 'public/upload.js'
@@ -80,6 +84,11 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-watch');
+
+    grunt.registerTask('build', function() {
+        grunt.task.run(['build-uploader']);
+        grunt.task.run(['build-sdk']);
+    });
 
     grunt.registerTask('build-uploader', function() {
 

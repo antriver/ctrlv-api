@@ -14,4 +14,10 @@ return [
     |
     */
 
+    'cloudflare' => [
+        'domain' => env('SERVICES_CLOUDFLARE_DOMAIN'),
+        'email' => env('SERVICES_CLOUDFLARE_EMAIL'),
+        'key' => env('SERVICES_CLOUDFLARE_KEY')
+    ]
+
 ];
