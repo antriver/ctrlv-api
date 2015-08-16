@@ -34,7 +34,7 @@ class CachePurgeTest extends TestCase
 
         $imagePath = '/var/www/ctrlv/img/tests/' . $filename;
 
-        $s3Url = 'http://s3.' . $s3Region . '.amazonaws.com/' . $s3Bucket . '/tests/' . $filename;
+        $s3Url = 'http://s3.' . ($s3Region !== 'us-east-1' ? '.' . $s3Region : '') . '.amazonaws.com/' . $s3Bucket . '/tests/' . $filename;
 
         $cloudflareUrl = $dataUrl . 'tests/' . $filename;
 
