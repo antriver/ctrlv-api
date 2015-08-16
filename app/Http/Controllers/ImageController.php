@@ -184,7 +184,7 @@ class ImageController extends ApiController
     /**
      * @api {get} /image/{id}/thumbnail View a Thumbnail
      * @apiGroup Images
-     * @apiDescription Returns an HTTP 302 redirect to the thumbnail image file.
+     * @apiDescription Returns an HTTP 302 redirect to the thumbnail image file. The thumbnail is 200x200px
      * @apiUse RequiresViewableImage
      *
      * @param  ImageModel  $imageModel
