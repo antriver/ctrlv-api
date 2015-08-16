@@ -22,14 +22,27 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * @apiSuccessExample {json} Success Response
  *               {
  *                   "success": true,
- *                   "image": [...]
+ *                   "image": [...] // See: Get An Image
  *               }
+ */
+
+/**
+ * @apiDefine RequiresViewableImage
+ * @apiParam {string} [sessionKey] Session key for the user that owns the image. **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
+ * @apiParam {string} [password] Password to view the image. **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
+ */
+
+/**
+ * @apiDefine RequiresEditableImage
+ * @apiParam {string} sessionKey Session key for the user that owns the image. **Either `sessionKey` or `imageKey` is required.**
+ * @apiParam {string} imageKey Editing key for the image (obtained when the image is created).  **Either `sessionKey` or `imageKey` is required.**
  */
 
 class ImageController extends ApiController
 {
     /**
      * Ensure that the given ImageModel is viewable by the current visitor
+     *
      * @param  ImageModel $imageModel
      * @throws HttpException
      * @return boolean
@@ -45,13 +58,14 @@ class ImageController extends ApiController
 
     /**
      * Ensure that the given ImageModel is editable by the current visitor
+     *
      * @param  ImageModel $imageModel
      * @throws HttpException
      * @return boolean
      */
     private function requireEditableImageModel(ImageModel $imageModel)
     {
-        if (!$imageModel->isEditable(Input::get('key'))) {
+        if (!$imageModel->isEditable(Input::get('imageKey'))) {
             App::abort(403, "You don't have permission to modify that image.");
             return false;
         }
@@ -59,10 +73,10 @@ class ImageController extends ApiController
     }
 
     /**
-     * Create a new image
-     *
      * @api {post} /image Create an Image
      * @apiGroup Images
+     * @apiDescription Store an image and return its metadata and a URL to view it. The returned `image` object
+     *     contains an additional property named `key` that can be used to manipulate the image in future requests.
      * @apiParam {string} base64 Base64 encoded image to upload.
      * @apiUse ImageSuccessResponse
      *
@@ -108,11 +122,10 @@ class ImageController extends ApiController
     }
 
     /**
-     * Display the specified resource.
-     *
      * @api {get} /image/{id} Get an Image
      * @apiGroup Images
      * @apiDescription Get the stored metadata for an image.
+     * @apiUse RequiresViewableImage
      * @apiSuccessExample {json} Success Response
      * {
      *     "image": {
@@ -150,6 +163,7 @@ class ImageController extends ApiController
      * @api {get} /image/{id}/image View an Image
      * @apiGroup Images
      * @apiDescription Returns an HTTP 302 redirect to the image file.
+     * @apiUse RequiresViewableImage
      *
      * @param  ImageModel  $imageModel
      * @return Response
@@ -171,6 +185,7 @@ class ImageController extends ApiController
      * @api {get} /image/{id}/thumbnail View a Thumbnail
      * @apiGroup Images
      * @apiDescription Returns an HTTP 302 redirect to the thumbnail image file.
+     * @apiUse RequiresViewableImage
      *
      * @param  ImageModel  $imageModel
      * @return Response
@@ -188,11 +203,10 @@ class ImageController extends ApiController
     }
 
     /**
-     * Display the specified resource.
-     *
      * @api {get} /image/{id}/annotation View an Annotation
      * @apiGroup Image Annotations
      * @apiDescription Returns an HTTP 302 redirect to the annotation image file.
+     * @apiUse RequiresViewableImage
      *
      * @param  ImageModel  $imageModel
      * @return Response
@@ -210,14 +224,13 @@ class ImageController extends ApiController
     }
 
     /**
-     * Update the specified resource in storage.
-     *
      * @api {put} /image/{id} Update an Image
      * @apiGroup Images
      * @apiDescription Update the stored metadata for an image.
      * @apiParam {string} [caption] Caption for the image. Send an empty string to remove the caption.
      * @apiParam {int=0,1,2} [privacy] Privacy setting.
-     * @apiParam {string} [password] (Required if privacy is `2`) Password required to view the image.
+     * @apiParam {string} [password] Password that will be needed to view the image. **Required if `privacy` is given and is `2`.**
+     * @apiUse RequiresEditableImage
      * @apiUse ImageSuccessResponse
      *
      * @param  Request  $request
@@ -252,14 +265,12 @@ class ImageController extends ApiController
     }
 
     /**
-     * POST /image/123/rotate
-     * Rotate the image.
-     *
      * @api {post} /image/{id}/rotate Rotate an Image
      * @apiGroup Manipulating Images
      * @apiDescription Rotate an image clockwise or counter-clockwise.
      * @apiParam {int=90,180,270} degrees Degrees to rotate by.
      * @apiParam {string=cw,ccw} [direction=cw] Direction to rotate in (clockwise or counter-clockwise respectively).
+     * @apiUse RequiresEditableImage
      * @apiUse ImageSuccessResponse
      *
      * @param  Request  $request
@@ -292,9 +303,6 @@ class ImageController extends ApiController
     }
 
     /**
-     * POST /image/123/crop
-     * Crop the image.
-     *
      * @api {post} /image/{id}/crop Crop an Image
      * @apiGroup Manipulating Images
      * @apiDescription Crops out a portion of the image. After cropping, you can use the `uncrop` endpoint to undo.
@@ -303,6 +311,7 @@ class ImageController extends ApiController
      * @apiParam {int} height Height of the rectangular cutout.
      * @apiParam {int} [x=0] X-Coordinate of the top-left corner of the rectangular cutout.
      * @apiParam {int} [y=0] Y-Coordinate of the top-left corner of the rectangular cutout.
+     * @apiUse RequiresEditableImage
      * @apiUse ImageSuccessResponse
      *
      * @param  Request  $request
@@ -345,12 +354,10 @@ class ImageController extends ApiController
     }
 
     /**
-     * POST /image/123/uncrop
-     * Uncrop the image.
-     *
      * @api {post} /image/{id}/uncrop Uncrop an Image
      * @apiGroup Manipulating Images
      * @apiDescription Revert the changes made by a prior crop operation. Returns an error if the image is not cropped.
+     * @apiUse RequiresEditableImage
      * @apiUse ImageSuccessResponse
      *
      * @param  ImageModel  $imageModel
@@ -381,14 +388,12 @@ class ImageController extends ApiController
     }
 
     /**
-     * POST /image/123/annotation
-     * Add an annotation to the image.
-     *
      * @api {post} /image/{id}/annotation Add an Annotation
      * @apiGroup Image Annotations
      * @apiDescription Add an annotation to an image. This will replace an existing annotation if it exists.
      * @apiParam {string} base64 Base64 encoded image to use as the annotation. This does not have to have the same
      *     dimensions as the image, but it must be the same ratio. It will be resized to the size of the image.
+     * @apiUse RequiresEditableImage
      * @apiUse ImageSuccessResponse
      *
      * @param  Request  $request
@@ -427,11 +432,10 @@ class ImageController extends ApiController
     }
 
     /**
-     * Delete an image's annotation.
-     *
      * @api {delete} /image/{id}/annotation Delete an Annotation
      * @apiGroup Image Annotations
      * @apiDescription Delete an image's annotation.
+     * @apiUse RequiresEditableImage
      * @apiUse ImageSuccessResponse
      *
      * @param  ImageModel  $imageModel
@@ -456,11 +460,10 @@ class ImageController extends ApiController
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
      * @api {delete} /image/{id} Delete an Image
      * @apiGroup Images
      * @apiDescription Delete an image.
+     * @apiUse RequiresEditableImage
      * @apiSuccessExample {json} Success Response
      *               {
      *                   "success": true
