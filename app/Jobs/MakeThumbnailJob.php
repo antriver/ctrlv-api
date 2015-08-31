@@ -36,7 +36,9 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
      */
     public function handle(FileRepository $fileRepository)
     {
-        $this->logger->debug("Generating thumbnail for image img/{$this->imageModel->filename} attempt {$this->attempts()}");
+        $this->logger->debug(
+            "Generating thumbnail for image img/{$this->imageModel->filename} attempt {$this->attempts()}"
+        );
 
         // Get full size image
         $image = $fileRepository->getImage('img/' . $this->imageModel->filename);
@@ -48,5 +50,4 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
             $this->imageModel->save();
         }
     }
-
 }

@@ -33,7 +33,12 @@ abstract class Job
     {
         $jobLogger = new \Monolog\Logger('Jobs');
         $fileHandler = new \Monolog\Handler\RotatingFileHandler(storage_path() . '/logs/jobs.log');
-        $lineFormatter = new \Monolog\Formatter\LineFormatter("[%datetime%] %message% %context% %extra%\n", null, true, true);
+        $lineFormatter = new \Monolog\Formatter\LineFormatter(
+            "[%datetime%] %message% %context% %extra%\n",
+            null,
+            true,
+            true
+        );
         $fileHandler->setFormatter($lineFormatter);
         $jobLogger->pushHandler($fileHandler);
         return $jobLogger;

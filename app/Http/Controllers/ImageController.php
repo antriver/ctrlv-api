@@ -28,14 +28,18 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * @apiDefine RequiresViewableImage
- * @apiParam {string} [sessionKey] Session key for the user that owns the image. **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
- * @apiParam {string} [password] Password to view the image. **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
+ * @apiParam {string} [sessionKey] Session key for the user that owns the image.
+ *     **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
+ * @apiParam {string} [password] Password to view the image.
+ *     **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
  */
 
 /**
  * @apiDefine RequiresEditableImage
- * @apiParam {string} sessionKey Session key for the user that owns the image. **Either `sessionKey` or `imageKey` is required.**
- * @apiParam {string} imageKey Editing key for the image (obtained when the image is created).  **Either `sessionKey` or `imageKey` is required.**
+ * @apiParam {string} sessionKey Session key for the user that owns the image.
+ *     **Either `sessionKey` or `imageKey` is required.**
+ * @apiParam {string} imageKey Editing key for the image (obtained when the image is created).
+ *     **Either `sessionKey` or `imageKey` is required.**
  */
 
 class ImageController extends ApiController
@@ -229,7 +233,8 @@ class ImageController extends ApiController
      * @apiDescription Update the stored metadata for an image.
      * @apiParam {string} [caption] Caption for the image. Send an empty string to remove the caption.
      * @apiParam {int=0,1,2} [privacy] Privacy setting.
-     * @apiParam {string} [password] Password that will be needed to view the image. **Required if `privacy` is given and is `2`.**
+     * @apiParam {string} [password] Password that will be needed to view the image.
+     *     **Required if `privacy` is given and is `2`.**
      * @apiUse RequiresEditableImage
      * @apiUse ImageSuccessResponse
      *
@@ -375,7 +380,10 @@ class ImageController extends ApiController
         $uncroppedImage = $fileRepository->getImage('uncropped/' . $imageModel->uncroppedfilename);
 
         // Copy back uncropped image
-        $fileRepository->renameFile('uncropped/' . $imageModel->uncroppedfilename, 'img/' . $imageModel->uncroppedfilename);
+        $fileRepository->renameFile(
+            'uncropped/' . $imageModel->uncroppedfilename,
+            'img/' . $imageModel->uncroppedfilename
+        );
 
         $imageModel->setImageMetadata($uncroppedImage);
         $imageModel->filename = $imageModel->uncroppedfilename;
@@ -402,8 +410,12 @@ class ImageController extends ApiController
      * @param  FileRepository $fileRepository
      * @return Response
      */
-    public function storeAnnotation(Request $request, ImageModel $imageModel, ImageFactory $imageFactory, FileRepository $fileRepository)
-    {
+    public function storeAnnotation(
+        Request $request,
+        ImageModel $imageModel,
+        ImageFactory $imageFactory,
+        FileRepository $fileRepository
+    ) {
         $this->requireEditableImageModel($imageModel);
 
         $this->validate($request, [
@@ -416,7 +428,10 @@ class ImageController extends ApiController
         $annotationRatio = round($annotationImage->width() / $annotationImage->height(), 2);
         $imageRatio = round($imageModel->w / $imageModel->h, 2);
         if ($annotationRatio !== $imageRatio) {
-            App::abort(422, "The annotation's ratio ({$annotationRatio}) is not the same as the image's ratio ({$imageRatio}).");
+            App::abort(
+                422,
+                "The annotation's ratio ({$annotationRatio}) is not the same as the image's ratio ({$imageRatio})."
+            );
         }
 
         // Resize annotation to the size of the image

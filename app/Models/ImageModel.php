@@ -59,6 +59,11 @@ class ImageModel extends EloquentModel
 
     public $timestamps = false;
 
+    public function albums()
+    {
+        return $this->belongsToMany('CtrlV\Models\Albuum', 'image_tags', 'imageID', 'tagID');
+    }
+
     /**
      * Return the properties in an array.
      *
@@ -181,7 +186,7 @@ class ImageModel extends EloquentModel
         $makeThumb = false;
         // We need to remember the original filename before saving
         // because the paren't saved method clears the dirty flag
-        if ($filenameChanged = $this->isDirty('filename') || !$this->exists) {
+        if ($this->isDirty('filename') || !$this->exists) {
             $this->thumb = false;
             $originalFilename = $this->getOriginal('filename');
             $makeThumb = true;
@@ -191,7 +196,6 @@ class ImageModel extends EloquentModel
 
         // We add the generate thumbnail job after saving to avoid any race conditions
         if ($makeThumb) {
-
             if ($originalFilename) {
                 $fileRepository = new FileRepository();
                 $fileRepository->deleteFile('img/' . $originalFilename);
@@ -234,7 +238,7 @@ class ImageModel extends EloquentModel
         parent::boot();
 
         // Attach event handler, on deleting of the user
-        self::creating(function($imageModel) {
+        self::creating(function ($imageModel) {
 
             $imageModel->generateKey();
 

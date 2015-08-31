@@ -1,10 +1,14 @@
 {
-  "name": "CtrlV API",
+  "name": "CtrlV.in API",
   "version": "0.1.0",
-  "description": "Upload images and stuff.",
-  "title": "CtrlV API",
+  "description": "",
+  "title": "CtrlV.in API",
   "url" : "https://api.ctrlv.in",
   "template": {
     "withCompare": false
+  },
+  "header": {
+    "title": "Image Uploader",
+    "filename": "apidoc-template/header.md"
   }
 }

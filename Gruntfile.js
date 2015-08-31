@@ -78,12 +78,24 @@ module.exports = function(grunt) {
             }
         },
 
+        shell: {
+            'build-api-docs': {
+                command: [
+                    './node_modules/apidoc/bin/apidoc -i ./app/Http/Controllers -o ./public/docs -t ./apidoc-template',
+                    'cd ./public/docs',
+                    'mv index.html index-original.html',
+                    'phantomjs compile.js'
+                ].join(' && ')
+            }
+        }
+
     });
 
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-shell');
 
     grunt.registerTask('build', function() {
         grunt.task.run(['build-uploader']);
@@ -120,6 +132,10 @@ module.exports = function(grunt) {
      */
     grunt.registerTask('build-sdk', function() {
         grunt.task.run(['uglify:build-sdk-js']);
+    });
+
+    grunt.registerTask('build-api-docs', function() {
+        grunt.task.run(['shell:build-api-docs']);
     });
 
 };

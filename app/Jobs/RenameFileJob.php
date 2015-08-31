@@ -39,9 +39,10 @@ class RenameFileJob extends Job implements SelfHandling, ShouldQueue
      */
     public function handle(FileRepository $fileRepository)
     {
-        $this->logger->debug("Renaming file {$this->oldRelativePath} to {$this->newRelativePath} attempt {$this->attempts()}");
+        $this->logger->debug(
+            "Renaming file {$this->oldRelativePath} to {$this->newRelativePath} attempt {$this->attempts()}"
+        );
 
         $fileRepository->renameFile($this->oldRelativePath, $this->newRelativePath, true);
     }
-
 }

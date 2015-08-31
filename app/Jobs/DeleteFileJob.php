@@ -39,5 +39,4 @@ class DeleteFileJob extends Job implements SelfHandling, ShouldQueue
 
         $fileRepository->deleteFile($this->relativePath, true);
     }
-
 }

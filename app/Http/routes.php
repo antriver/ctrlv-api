@@ -19,13 +19,13 @@ Route::controller('uploader', 'UploaderController');
 
 Route::get('image/{image}/image', ['uses' => 'ImageController@view']);
 Route::get('image/{image}/thumbnail', ['uses' => 'ImageController@viewThumbnail']);
-
 Route::post('image/{image}/rotate', ['uses' => 'ImageController@rotate']);
 Route::post('image/{image}/crop', ['uses' => 'ImageController@crop']);
 Route::post('image/{image}/uncrop', ['uses' => 'ImageController@uncrop']);
-
 Route::get('image/{image}/annotation', ['uses' => 'ImageController@viewAnnotation']);
 Route::post('image/{image}/annotation', ['uses' => 'ImageController@storeAnnotation']);
 Route::delete('image/{image}/annotation', ['uses' => 'ImageController@destroyAnnotation']);
-
 Route::resource('image', 'ImageController', ['only' => ['store', 'show', 'update', 'destroy']]);
+
+
+Route::resource('album', 'AlbumController', ['only' => ['store', 'show', 'update', 'destroy']]);
