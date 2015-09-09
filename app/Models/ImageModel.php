@@ -209,9 +209,9 @@ class ImageModel extends EloquentModel
         return $result;
     }
 
+    // TODO: What if jobs are currently processing/waiting?
     public function delete()
     {
-        // What if jobs are currently processing/waiting?
         $fileRepository = new FileRepository();
 
         $fileRepository->deleteFile('img/' . $this->filename);
