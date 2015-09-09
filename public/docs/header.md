@@ -1,3 +1,7 @@
+<a href="/"><img src="img/ctrlv-dark-358x142.png" alt="CtrlV.in" style="height:71px;" /></a>
+
+<br/>
+
 CtrlV now has a public API for uploading and manipulating images. You can use the <a href="#image-uploader">**Image Uploader**</a> to allow your website's users to upload images. Then you can use the **REST API** to manipulate those images as necessary.
 
 <hr id="image-uploader"/>
