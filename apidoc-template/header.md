@@ -24,4 +24,4 @@ ctrlv.upload(function(image){
 
 The contents of the `image` object are the same as those returned by <a href="#api-Images-GetImageId">Get An Image</a> below. The object contains an additional property named `key` that can be used to manipulate the image in future requests.
 
-A demonstation <a href="http://ctrlvin.github.io/" target="_blank">can be seen here</a>.
+A demo <a href="http://ctrlvin.github.io/" target="_blank">can be seen here</a>.

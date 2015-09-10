@@ -30,7 +30,7 @@ class AppServiceProvider extends ServiceProvider
             $queryLogger->pushHandler($fileHandler);
 
             if (php_sapi_name() !== 'cli') {
-                $queryLogger->info("\n\n=======\n{$_SERVER['REQUEST_METHOD']}\n{$_SERVER['REQUEST_URI']}\n" . Request::server('HTTP_REFERER') . "\n" . NOW . "\n=========");
+                $queryLogger->info("\n\n=======\n{$_SERVER['REQUEST_METHOD']}\n{$_SERVER['REQUEST_URI']}\n" . Request::server('HTTP_REFERER') . "\n" . date('Y-m-d H:i:s') . "\n=========");
             }
 
             Event::listen("illuminate.query", function($query, $bindings, $time, $name) use($queryLogger) {
