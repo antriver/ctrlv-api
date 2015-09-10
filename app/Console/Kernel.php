@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \CtrlV\Console\Commands\Images\DeleteExpired::class,
+        \CtrlV\Console\Commands\Images\Prune::class,
     ];
 
     /**
