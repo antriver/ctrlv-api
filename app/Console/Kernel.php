@@ -26,5 +26,6 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('images:deleteexpired')->everyMinute();
+        $schedule->command('images:prune')->hourly();
     }
 }
