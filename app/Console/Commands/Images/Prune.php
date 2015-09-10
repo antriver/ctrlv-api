@@ -44,6 +44,6 @@ find /var/www/ctrlv/img/ -type f -mtime +7 -regex '.*\.\(jpg\|png\)' -exec rm {}
 find /var/www/ctrlv/tmp/ -maxdepth 1 -type f -mtime +1 -not -name ".*" -exec rm {} \; -print
 EOT;
 
-        shell_exec($cmd);
+        print_r(shell_exec($cmd));
     }
 }
