@@ -32,7 +32,7 @@ class ImageModel extends EloquentModel
 
     protected $dates = [
         'date',
-        'expires'
+        'expires_at'
     ];
 
     protected $guarded = [];
