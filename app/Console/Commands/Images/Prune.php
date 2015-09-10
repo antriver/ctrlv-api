@@ -15,7 +15,7 @@ class Prune extends Command
      *
      * @var string
      */
-    protected $signature = 'images:deleteexpired';
+    protected $signature = 'images:prune';
 
     /**
      * The console command description.
