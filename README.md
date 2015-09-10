@@ -17,10 +17,9 @@ sudo -u www-data php artisan queue:listen --tries=3 --sleep=1 -vvv --timeout=600
 * API Keys
 
 
-
 ## Generate API Doc
 ```bash
-npm-exec apidoc -i app/Http/Controllers -o public/docs -t apidoc-template
+grunt build-api-docs
 ```
 
 ## Supervisor config
