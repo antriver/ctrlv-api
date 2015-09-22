@@ -13,6 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        \CtrlV\Console\Commands\Images\Delete::class,
         \CtrlV\Console\Commands\Images\DeleteExpired::class,
         \CtrlV\Console\Commands\Images\Prune::class,
     ];
