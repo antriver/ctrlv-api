@@ -15,7 +15,9 @@ Route::model('image', '\CtrlV\Models\ImageModel');
 
 Route::get('/', ['uses' => 'RootController@getIndex']);
 
-Route::controller('uploader', 'UploaderController');
+Route::get('uploader', ['uses' => 'UploaderController@getIndex']);
+Route::get('uploader/xdframe', ['uses' => 'UploaderController@getXdframe']);
+Route::get('uploader/blank', ['uses' => 'UploaderController@getBlank']);
 
 Route::get('image/{image}/image', ['uses' => 'ImageController@view']);
 Route::get('image/{image}/thumbnail', ['uses' => 'ImageController@viewThumbnail']);
@@ -26,6 +28,5 @@ Route::get('image/{image}/annotation', ['uses' => 'ImageController@viewAnnotatio
 Route::post('image/{image}/annotation', ['uses' => 'ImageController@storeAnnotation']);
 Route::delete('image/{image}/annotation', ['uses' => 'ImageController@destroyAnnotation']);
 Route::resource('image', 'ImageController', ['only' => ['store', 'show', 'update', 'destroy']]);
-
 
 Route::resource('album', 'AlbumController', ['only' => ['store', 'show', 'update', 'destroy']]);

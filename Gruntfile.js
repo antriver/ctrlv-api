@@ -1,6 +1,6 @@
 module.exports = function(grunt) {
 
-    function generateBuildNumber(){
+    function generateBuildNumber() {
         var d = new Date();
         return d.getUTCFullYear() + ('0' + (d.getUTCMonth()+1)).slice(-2) + ('0' + d.getUTCDate()).slice(-2) + ('0' + d.getUTCHours()).slice(-2) + ('0' + d.getUTCMinutes()).slice(-2);
     }
@@ -37,7 +37,7 @@ module.exports = function(grunt) {
             // Scripts used in the uploader popup
             'build-uploader-js': {
                 src: [
-                    'resources/assets/js/src/ImagePaster.js',
+                    'resources/assets/lib/ImagePaster.js',
                     'resources/assets/uploader/js/uploader.js'
                 ],
                 dest: 'public/assets/build/' + timestamp + '/js/uploader.min.js'
@@ -139,5 +139,3 @@ module.exports = function(grunt) {
     });
 
 };
-
-

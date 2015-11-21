@@ -158,7 +158,8 @@ return [
         CtrlV\Providers\RouteServiceProvider::class,
 
         Intervention\Image\ImageServiceProvider::class,
-        Aws\Laravel\AwsServiceProvider::class
+        Aws\Laravel\AwsServiceProvider::class,
+        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class
 
     ],
 

@@ -4,15 +4,21 @@ namespace CtrlV\Factories;
 
 use Exception;
 use InterventionFacade;
-use CtrlV\Models\ImageModel;
+use Intervention\Image\Image;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+/**
+ * Class ImageFactory
+ * Generates Intervention Image objects from various sources.
+ */
 class ImageFactory
 {
     /**
      * Create an image from a base64 encoded string.
      *
      * @param  string $base64String
+     *
+     * @throws Exception
      * @return Image
      */
     public function createFromBase64String($base64String)
@@ -30,6 +36,8 @@ class ImageFactory
      * Create an image from an uploaded file.
      *
      * @param  UploadedFile $file
+     *
+     * @throws Exception
      * @return Image
      */
     public function createFromUploadedFile(UploadedFile $file)
@@ -48,6 +56,8 @@ class ImageFactory
      * Create an image from a URL.
      *
      * @param string $url
+     *
+     * @throws Exception
      * @return Image
      */
     public function createFromUrl($url)

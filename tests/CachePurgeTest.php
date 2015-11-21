@@ -1,14 +1,13 @@
 <?php
 
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+namespace CtrlVTests;
 
+use Config;
 use CtrlV\Factories\ImageFactory;
 use CtrlV\Repositories\FileRepository;
 use CtrlV\Libraries\CacheManager;
 
-class CacheTest extends TestCase
+class CachePurgeTest extends TestCase
 {
     private $dataDir;
 
@@ -17,9 +16,21 @@ class CacheTest extends TestCase
 
     private $s3Bucket;
     private $s3Region;
+    private $s3Url;
 
+    /**
+     * @var ImageFactory
+     */
     private $imageFactory;
-    private $fileRepositry;
+
+    /**
+     * @var FileRepository
+     */
+    private $fileRepository;
+
+    /**
+     * @var CacheManager
+     */
     private $cacheManager;
 
     public function setUp()
@@ -33,17 +44,21 @@ class CacheTest extends TestCase
 
         $this->s3Bucket = Config::get('aws.s3.image_bucket');
         $this->s3Region = Config::get('aws.region');
-        $this->s3Url = 'http://s3' . ($this->s3Region !== 'us-east-1' ? '.' . $this->s3Region : '') . '.amazonaws.com/' . $this->s3Bucket . '/';
+        $this->s3Url = 'http://s3'
+            . ($this->s3Region !== 'us-east-1' ? '.' . $this->s3Region : '')
+            . '.amazonaws.com/'
+            . $this->s3Bucket
+            . '/';
 
         $this->imageFactory = new ImageFactory();
-        $this->fileRepositry = new FileRepository();
+        $this->fileRepository = new FileRepository();
         $this->cacheManager = new CacheManager();
     }
 
     public function tearDown()
     {
         unset($this->imageFactory);
-        unset($this->fileRepositry);
+        unset($this->fileRepository);
     }
 
     /**
@@ -54,7 +69,7 @@ class CacheTest extends TestCase
     public function testSaveAndDeleteImage()
     {
         $image = $this->getImage();
-        $filename = 'tests/' . $this->fileRepositry->saveImage($image, 'tests');
+        $filename = 'tests/' . $this->fileRepository->saveImage($image, 'tests');
 
         $path = $this->dataDir . $filename;
         $s3Url =  $this->s3Url . $filename;
@@ -69,7 +84,7 @@ class CacheTest extends TestCase
 
         $this->assertEquals(200, $this->getHttpResponseCode($cloudflareUrl), $cloudflareUrl);
 
-        $this->fileRepositry->deleteFile($filename);
+        $this->fileRepository->deleteFile($filename);
 
         $this->assertFileNotExists($path);
 
@@ -83,7 +98,7 @@ class CacheTest extends TestCase
     public function testNginxCachePurge()
     {
         $image = $this->getImage();
-        $filename = 'tests/' . $this->fileRepositry->saveImage($image, 'tests');
+        $filename = 'tests/' . $this->fileRepository->saveImage($image, 'tests');
 
         $path = $this->dataDir . $filename;
         $s3Url =  $this->s3Url . $filename;
@@ -111,7 +126,7 @@ class CacheTest extends TestCase
         $this->assertContains('X-Cache-Status: HIT', $headers);
 
         // Delete from remote
-        $this->fileRepositry->deleteFromRemote($filename);
+        $this->fileRepository->deleteFromRemote($filename);
 
         $this->assertNotEquals(200, $this->getHttpResponseCode($s3Url), $s3Url);
 
@@ -126,7 +141,7 @@ class CacheTest extends TestCase
         // Test it's no longer being served
         $this->assertNotEquals(200, $this->getHttpResponseCode($directUrl), $directUrl);
 
-        $this->fileRepositry->deleteFile($filename);
+        $this->fileRepository->deleteFile($filename);
     }
 
     /**
@@ -163,7 +178,7 @@ class CacheTest extends TestCase
     }
 
     /**
-     * @return Intervention\Image
+     * @return \Intervention\Image\Image
      */
     private function getImage()
     {

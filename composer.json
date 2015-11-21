@@ -12,7 +12,9 @@
         "pda/pheanstalk": "^3.0",
         "aws/aws-sdk-php-laravel": "^3.0",
         "intervention/image": "^2.3",
-        "okwinza/cloudflare-api": "^1.0"
+        "okwinza/cloudflare-api": "^1.0",
+        "barryvdh/laravel-ide-helper": "^2.1",
+        "tmd/auto-git-pull": "^2.1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
@@ -25,7 +27,8 @@
             "database"
         ],
         "psr-4": {
-            "CtrlV\\": "app/"
+            "CtrlV\\": "app/",
+            "CtrlVTests\\": "tests/"
         }
     },
     "autoload-dev": {
