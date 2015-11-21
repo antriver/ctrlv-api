@@ -44,7 +44,8 @@ class FileRepository
     /**
      * Return the contents of a file.
      *
-     * @param  string $relativePath
+     * @param string $relativePath
+     *
      * @return string
      */
     public function getFile($relativePath)
@@ -59,8 +60,9 @@ class FileRepository
     /**
      * Return an Image object from the given relativePath.
      *
-     * @param  string $relativePath
-     * @return Image
+     * @param string $relativePath
+     *
+     * @return Image|null
      */
     public function getImage($relativePath)
     {
@@ -71,14 +73,19 @@ class FileRepository
         if ($this->copyFromRemote($relativePath)) {
             return InterventionFacade::make($this->localDir . $relativePath);
         }
+
+        return null;
     }
 
     /**
      * Save an Image object to the file system.
      * Runs OptimizeFileJob on the file after it is saved.
      *
-     * @param  Image  $image
-     * @param  string $type  IMAGE|ANNOTATION|THUMB
+     * @param Image $image
+     * @param string $type IMAGE|ANNOTATION|THUMB
+     * @param string $filename
+     *
+     * @throws Exception
      * @return string Path to the saved file relative to the localDir
      */
     public function saveImage(Image $image, $type = 'img', $filename = null)
@@ -109,8 +116,9 @@ class FileRepository
     /**
      * Save an file in the local filesystem.
      *
-     * @param  string  $contents
-     * @param  string $relativePath  Relative to localDir
+     * @param string $contents
+     * @param string $relativePath Relative to localDir
+     *
      * @return boolean
      */
     private function saveFileLocally($contents, $relativePath)
@@ -125,8 +133,9 @@ class FileRepository
     /**
      * Save an image in the local filesystem.
      *
-     * @param  Image  $image
-     * @param  string $relativePath  Relative to localDir
+     * @param Image $image
+     * @param string $relativePath Relative to localDir
+     *
      * @return boolean
      */
     private function saveImageLocally(Image $image, $relativePath)
@@ -139,9 +148,10 @@ class FileRepository
     }
 
     /**
-     * Create a directory in the localDir if it doesn't already exist.
+     * Create a directory in the localDir if it does not already exist.
      *
-     * @param  string $relativePath Relative to the localDir
+     * @param string $relativePath Relative to the localDir
+     *
      * @return boolean
      */
     private function createLocalDirectory($relativePath)
@@ -157,8 +167,9 @@ class FileRepository
     /**
      * Generate a directory and filename to save an image as.
      *
-     * @param  string $extension
-     * @param  string $prefix
+     * @param string $extension
+     * @param string $prefix
+     *
      * @return string yy/mm/dd/{$prefix}-filename.{$extension}
      */
     private function generateFilename($extension = 'jpg', $prefix = '')
@@ -182,27 +193,31 @@ class FileRepository
      * Public so it can be run from a Job.
      *
      * @param string $relativePath
+     *
      * @return \Aws\Result
      */
     public function copyToRemote($relativePath)
     {
         $s3Client = $this->getS3Client();
-        return $s3Client->putObject([
-            'ACL' => $this->s3Access,
-            'Bucket' => $this->s3BucketName,
-            'Expires' => $this->s3Expires,
-            'Key' => $relativePath,
-            'SourceFile' => $this->localDir . $relativePath
-        ]);
+        return $s3Client->putObject(
+            [
+                'ACL' => $this->s3Access,
+                'Bucket' => $this->s3BucketName,
+                'Expires' => $this->s3Expires,
+                'Key' => $relativePath,
+                'SourceFile' => $this->localDir . $relativePath
+            ]
+        );
     }
 
     /**
      * Copy from remote storage to local file.
      * Returns the contents of the file
      *
-     * @param  string $relativePath
-     * @params boolean $returnContents If true returns the contents of the file otherwise returns a boolean
-     * @return boolean|string
+     * @param string $relativePath
+     * @param boolean $returnContents If true returns the contents of the file otherwise returns a boolean
+     *
+     * @return string|bool
      */
     public function copyFromRemote($relativePath, $returnContents = false)
     {
@@ -223,6 +238,7 @@ class FileRepository
      *
      * @param string $relativePath
      * @param boolean $synchronously Delete from remote
+     *
      * @return array
      */
     public function deleteFile($relativePath, $synchronously = false)
@@ -252,7 +268,8 @@ class FileRepository
     /**
      * Delete a file from remote only.
      *
-     * @param  string $relativePath
+     * @param string $relativePath
+     *
      * @return object
      */
     public function deleteFromRemote($relativePath)
@@ -264,8 +281,10 @@ class FileRepository
     /**
      * Rename a file both locally and from remote.
      *
-     * @param string $relativePath
-     * @param boolean $synchronously
+     * @param string $oldRelativePath
+     * @param string $newRelativePath
+     * @param bool $synchronously
+     *
      * @return array
      */
     public function renameFile($oldRelativePath, $newRelativePath, $synchronously = false)
@@ -286,13 +305,16 @@ class FileRepository
 
         $s3Client = $this->getS3Client();
 
-        if ($s3Client->copyObject([
-            'ACL' => $this->s3Access,
-            'Bucket' => $this->s3BucketName,
-            'CopySource' => "{$this->s3BucketName}/{$oldRelativePath}",
-            'Expires' => $this->s3Expires,
-            'Key' => $newRelativePath,
-        ])) {
+        if ($s3Client->copyObject(
+            [
+                'ACL' => $this->s3Access,
+                'Bucket' => $this->s3BucketName,
+                'CopySource' => "{$this->s3BucketName}/{$oldRelativePath}",
+                'Expires' => $this->s3Expires,
+                'Key' => $newRelativePath,
+            ]
+        )
+        ) {
             $result['remote'] = true;
             $s3Client->deleteMatchingObjects($this->s3BucketName, $oldRelativePath);
         }
@@ -307,7 +329,8 @@ class FileRepository
     /**
      * Check if the given file exists locally.
      *
-     * @param  string $relativePath
+     * @param string $relativePath
+     *
      * @return boolean
      */
     private function localFileExists($relativePath)
@@ -319,7 +342,8 @@ class FileRepository
      * Return the file extension for the given mime type.
      * (Only those supported by Intervention are defined)
      *
-     * @param  string $mime
+     * @param string $mime
+     *
      * @return string
      * @throws \Intervention\Image\Exception\NotSupportedException
      */

@@ -2,11 +2,6 @@
 
 namespace CtrlV\Models;
 
-use Auth;
-use Config;
-use DateTime;
-use Exception;
-
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 
 class Album extends EloquentModel

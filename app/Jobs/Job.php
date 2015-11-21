@@ -3,6 +3,9 @@
 namespace CtrlV\Jobs;
 
 use Illuminate\Bus\Queueable;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Logger;
 
 abstract class Job
 {
@@ -27,13 +30,13 @@ abstract class Job
     }
 
     /**
-     * @return Monolog
+     * @return Logger
      */
     private function getJobLogger()
     {
-        $jobLogger = new \Monolog\Logger('Jobs');
-        $fileHandler = new \Monolog\Handler\RotatingFileHandler(storage_path() . '/logs/jobs.log');
-        $lineFormatter = new \Monolog\Formatter\LineFormatter(
+        $jobLogger = new Logger('Jobs');
+        $fileHandler = new RotatingFileHandler(storage_path() . '/logs/jobs.log');
+        $lineFormatter = new LineFormatter(
             "[%datetime%] %message% %context% %extra%\n",
             null,
             true,

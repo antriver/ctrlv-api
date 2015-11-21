@@ -2,11 +2,7 @@
 
 namespace CtrlV\Console\Commands\Images;
 
-use App;
-use DateTime;
-use Log;
 use Illuminate\Console\Command;
-use CtrlV\Models\ImageModel;
 
 class Prune extends Command
 {
@@ -24,10 +20,6 @@ class Prune extends Command
      */
     protected $description = 'Delete local image files not modified in the last 7 days';
 
-    /**
-     * @var Monolog
-     */
-    private $log;
 
     /**
      * Execute the console command.

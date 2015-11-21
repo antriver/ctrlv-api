@@ -16,7 +16,7 @@ class ImageFactory
     /**
      * Create an image from a base64 encoded string.
      *
-     * @param  string $base64String
+     * @param string $base64String
      *
      * @throws Exception
      * @return Image
@@ -35,7 +35,7 @@ class ImageFactory
     /**
      * Create an image from an uploaded file.
      *
-     * @param  UploadedFile $file
+     * @param UploadedFile $file
      *
      * @throws Exception
      * @return Image

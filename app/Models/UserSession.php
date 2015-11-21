@@ -2,7 +2,6 @@
 
 namespace CtrlV\Models;
 
-use Auth;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 
 class UserSession extends EloquentModel

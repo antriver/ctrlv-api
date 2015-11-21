@@ -6,10 +6,8 @@ use Auth;
 use Config;
 use DateTime;
 use Exception;
-
 use CtrlV\Jobs\MakeThumbnailJob;
 use CtrlV\Repositories\FileRepository;
-use Eloquence\Database\Traits\CamelCaseModel;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Intervention\Image\Image;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -61,7 +59,7 @@ class ImageModel extends EloquentModel
 
     public function albums()
     {
-        return $this->belongsToMany('CtrlV\Models\Albuum', 'image_tags', 'imageID', 'tagID');
+        return $this->belongsToMany('CtrlV\Models\Album', 'image_tags', 'imageID', 'tagID');
     }
 
     /**
@@ -104,7 +102,8 @@ class ImageModel extends EloquentModel
      *     - or the logged in user is the owner of the image
      *     - or the correct password was supplied
      *
-     * @param  string  $password Plain text password
+     * @param string $password Plain text password
+     *
      * @return boolean
      */
     public function isViewable($password = null)
@@ -170,7 +169,7 @@ class ImageModel extends EloquentModel
     }
 
     /**
-     * Generate a key to be stored in a cookie so users who aren't logged in
+     * Generate a key to be stored in a cookie so users who are not logged in
      * can edit / delete the image.
      *
      * @return string
@@ -184,8 +183,9 @@ class ImageModel extends EloquentModel
     public function save(array $options = [])
     {
         $makeThumb = false;
+        $originalFilename = null;
         // We need to remember the original filename before saving
-        // because the paren't saved method clears the dirty flag
+        // because the parent saved method clears the dirty flag
         if ($this->isDirty('filename') || !$this->exists) {
             $this->thumb = false;
             $originalFilename = $this->getOriginal('filename');
@@ -238,13 +238,15 @@ class ImageModel extends EloquentModel
         parent::boot();
 
         // Attach event handler, on deleting of the user
-        self::creating(function ($imageModel) {
+        self::creating(
+            function (ImageModel $imageModel) {
 
-            $imageModel->generateKey();
+                $imageModel->generateKey();
 
-            $date = new DateTime;
-            $imageModel->date = $date->format('Y-m-d H:i:s');
+                $date = new DateTime;
+                $imageModel->date = $date->format('Y-m-d H:i:s');
 
-        });
+            }
+        );
     }
 }

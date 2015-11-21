@@ -2,9 +2,6 @@
 
 namespace CtrlV\Console\Commands\Images;
 
-use App;
-use DateTime;
-use Log;
 use Illuminate\Console\Command;
 use CtrlV\Models\ImageModel;
 
@@ -23,11 +20,6 @@ class DeleteExpired extends Command
      * @var string
      */
     protected $description = 'Delete images past their expiration date';
-
-    /**
-     * @var Monolog
-     */
-    private $log;
 
     /**
      * Execute the console command.

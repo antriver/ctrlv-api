@@ -3,9 +3,6 @@
 namespace CtrlV\Jobs;
 
 use Config;
-use Exception;
-use Log;
-use CtrlV\Jobs\Job;
 use CtrlV\Libraries\CacheManager;
 use CtrlV\Repositories\FileRepository;
 use Illuminate\Queue\SerializesModels;
@@ -23,7 +20,9 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @return void
+     * @param string $relativePath
+     *
+     * @return \CtrlV\Jobs\OptimizeFileJob
      */
     public function __construct($relativePath)
     {
@@ -33,6 +32,9 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
 
     /**
      * Execute the job.
+     *
+     * @param FileRepository $fileRepository
+     * @param CacheManager $cacheManager
      *
      * @return void
      */
@@ -61,12 +63,10 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
 
             case IMAGETYPE_JPEG:
                 $cmd = "jpegtran -copy none -optimize -progressive {$tempSourcePath} > {$tempDestPath}";
-                $fileType = 'jpg';
                 break;
 
             case IMAGETYPE_PNG:
                 $cmd = "pngcrush -brute -l 9 {$tempSourcePath} {$tempDestPath}";
-                $fileType = 'png';
                 break;
 
             default:
@@ -81,7 +81,9 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
 
         passthru($cmd);
 
-        @unlink($tempSourcePath);
-        @unlink($tempDestPath);
+        unlink($tempSourcePath);
+        unlink($tempDestPath);
+
+        return true;
     }
 }

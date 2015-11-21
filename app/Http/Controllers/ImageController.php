@@ -5,10 +5,8 @@ namespace CtrlV\Http\Controllers;
 use App;
 use Auth;
 use Config;
-use Exception;
 use Input;
 use Response;
-use Validator;
 use CtrlV\Http\Requests;
 use CtrlV\Http\Controllers\Base\ApiController;
 use CtrlV\Models\ImageModel;
@@ -41,13 +39,13 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * @apiParam {string} imageKey Editing key for the image (obtained when the image is created).
  *     **Either `sessionKey` or `imageKey` is required.**
  */
-
 class ImageController extends ApiController
 {
     /**
      * Ensure that the given ImageModel is viewable by the current visitor
      *
-     * @param  ImageModel $imageModel
+     * @param ImageModel $imageModel
+     *
      * @throws HttpException
      * @return boolean
      */
@@ -63,7 +61,8 @@ class ImageController extends ApiController
     /**
      * Ensure that the given ImageModel is editable by the current visitor
      *
-     * @param  ImageModel $imageModel
+     * @param ImageModel $imageModel
+     *
      * @throws HttpException
      * @return boolean
      */
@@ -77,15 +76,16 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {post} /image Create an Image
-     * @apiGroup Images
+     * @api            {post} /image Create an Image
+     * @apiGroup       Images
      * @apiDescription Store an image and return its metadata and a URL to view it. The returned `image` object
      *     contains an additional property named `key` that can be used to manipulate the image in future requests.
      * @apiParam {string} base64 Base64 encoded image to upload.
-     * @apiUse ImageSuccessResponse
+     * @apiUse         ImageSuccessResponse
      *
-     * @param  Request  $request
-     * @param  ImageFactory $imageFactory
+     * @param Request $request
+     * @param ImageFactory $imageFactory
+     *
      * @return Response
      */
     public function store(Request $request, ImageFactory $imageFactory)
@@ -107,10 +107,12 @@ class ImageController extends ApiController
 
         $userID = Auth::check() ? Auth::user()->userID : null;
 
-        $imageModel = new ImageModel([
-            'IP' => $request->ip(),
-            'userID' => $userID,
-        ]);
+        $imageModel = new ImageModel(
+            [
+                'IP' => $request->ip(),
+                'userID' => $userID,
+            ]
+        );
 
         $imageModel->saveWithNewImage($image, false);
 
@@ -119,17 +121,19 @@ class ImageController extends ApiController
         $imageModelArray = $imageModel->toArray();
         $imageModelArray['key'] = $imageModel->key;
 
-        return Response::json([
-            'image' => $imageModelArray,
-            'success' => true,
-        ]);
+        return Response::json(
+            [
+                'image' => $imageModelArray,
+                'success' => true,
+            ]
+        );
     }
 
     /**
-     * @api {get} /image/{id} Get an Image
-     * @apiGroup Images
+     * @api            {get} /image/{id} Get an Image
+     * @apiGroup       Images
      * @apiDescription Get the stored metadata for an image.
-     * @apiUse RequiresViewableImage
+     * @apiUse         RequiresViewableImage
      * @apiSuccessExample {json} Success Response
      * {
      *     "image": {
@@ -154,7 +158,8 @@ class ImageController extends ApiController
      *     }
      *   }
      *
-     * @param  ImageModel  $imageModel
+     * @param ImageModel $imageModel
+     *
      * @return Response
      */
     public function show(ImageModel $imageModel)
@@ -164,12 +169,13 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {get} /image/{id}/image View an Image
-     * @apiGroup Images
+     * @api            {get} /image/{id}/image View an Image
+     * @apiGroup       Images
      * @apiDescription Returns an HTTP 302 redirect to the image file.
-     * @apiUse RequiresViewableImage
+     * @apiUse         RequiresViewableImage
      *
-     * @param  ImageModel  $imageModel
+     * @param ImageModel $imageModel
+     *
      * @return Response
      */
     public function view(ImageModel $imageModel)
@@ -186,12 +192,13 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {get} /image/{id}/thumbnail View a Thumbnail
-     * @apiGroup Images
+     * @api            {get} /image/{id}/thumbnail View a Thumbnail
+     * @apiGroup       Images
      * @apiDescription Returns an HTTP 302 redirect to the thumbnail image file. The thumbnail is 200x200px
-     * @apiUse RequiresViewableImage
+     * @apiUse         RequiresViewableImage
      *
-     * @param  ImageModel  $imageModel
+     * @param ImageModel $imageModel
+     *
      * @return Response
      */
     public function viewThumbnail(ImageModel $imageModel)
@@ -207,12 +214,13 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {get} /image/{id}/annotation View an Annotation
-     * @apiGroup Image Annotations
+     * @api            {get} /image/{id}/annotation View an Annotation
+     * @apiGroup       Image Annotations
      * @apiDescription Returns an HTTP 302 redirect to the annotation image file.
-     * @apiUse RequiresViewableImage
+     * @apiUse         RequiresViewableImage
      *
-     * @param  ImageModel  $imageModel
+     * @param ImageModel $imageModel
+     *
      * @return Response
      */
     public function viewAnnotation(ImageModel $imageModel)
@@ -228,29 +236,33 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {put} /image/{id} Update an Image
-     * @apiGroup Images
+     * @api            {put} /image/{id} Update an Image
+     * @apiGroup       Images
      * @apiDescription Update the stored metadata for an image.
      * @apiParam {string} [caption] Caption for the image. Send an empty string to remove the caption.
      * @apiParam {int=0,1,2} [privacy] Privacy setting.
      * @apiParam {string} [password] Password that will be needed to view the image.
      *     **Required if `privacy` is given and is `2`.**
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param  Request  $request
-     * @param  ImageModel  $imageModel
+     * @param Request $request
+     * @param ImageModel $imageModel
+     *
      * @return Response
      */
     public function update(Request $request, ImageModel $imageModel)
     {
         $this->requireEditableImageModel($imageModel);
 
-        $this->validate($request, [
-            'caption' => 'max:10',
-            'privacy' => 'integer|between:0,2',
-            'password' => 'required_if:privacy,2'
-        ]);
+        $this->validate(
+            $request,
+            [
+                'caption' => 'max:10',
+                'privacy' => 'integer|between:0,2',
+                'password' => 'required_if:privacy,2'
+            ]
+        );
 
         if ($request->exists('caption')) {
             $imageModel->caption = $request->input('caption');
@@ -270,26 +282,30 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {post} /image/{id}/rotate Rotate an Image
-     * @apiGroup Manipulating Images
+     * @api            {post} /image/{id}/rotate Rotate an Image
+     * @apiGroup       Manipulating Images
      * @apiDescription Rotate an image clockwise or counter-clockwise.
      * @apiParam {int=90,180,270} degrees Degrees to rotate by.
      * @apiParam {string=cw,ccw} [direction=cw] Direction to rotate in (clockwise or counter-clockwise respectively).
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param  Request  $request
-     * @param  ImageModel  $imageModel
+     * @param Request $request
+     * @param ImageModel $imageModel
+     *
      * @return Response
      */
     public function rotate(Request $request, ImageModel $imageModel)
     {
         $this->requireEditableImageModel($imageModel);
 
-        $this->validate($request, [
-            'degrees' => 'required|integer|in:90,180,270',
-            'direction' => 'in:cw,ccw'
-        ]);
+        $this->validate(
+            $request,
+            [
+                'degrees' => 'required|integer|in:90,180,270',
+                'direction' => 'in:cw,ccw'
+            ]
+        );
 
         $degrees = (int)$request->input('degrees');
         $direction = $request->has('direction') ? $request->input('direction') : 'cw';
@@ -308,20 +324,21 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {post} /image/{id}/crop Crop an Image
-     * @apiGroup Manipulating Images
+     * @api            {post} /image/{id}/crop Crop an Image
+     * @apiGroup       Manipulating Images
      * @apiDescription Crops out a portion of the image. After cropping, you can use the `uncrop` endpoint to undo.
      *     If the image is already cropped an error will be returned.
      * @apiParam {int} width Width of the rectangular cutout.
      * @apiParam {int} height Height of the rectangular cutout.
      * @apiParam {int} [x=0] X-Coordinate of the top-left corner of the rectangular cutout.
      * @apiParam {int} [y=0] Y-Coordinate of the top-left corner of the rectangular cutout.
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param  Request  $request
-     * @param  ImageModel  $imageModel
-     * @param  FileRepository $fileRepository
+     * @param Request $request
+     * @param ImageModel $imageModel
+     * @param FileRepository $fileRepository
+     *
      * @return Response
      */
     public function crop(Request $request, ImageModel $imageModel, FileRepository $fileRepository)
@@ -332,12 +349,15 @@ class ImageController extends ApiController
             return $this->error('Image is already cropped.');
         }
 
-        $this->validate($request, [
-            'width' => 'required|integer|between:1,' . $imageModel->w,
-            'height' => 'required|integer|between:1,' . $imageModel->h,
-            'x' => 'integer|between:0,' . $imageModel->w,
-            'y' => 'integer|between:0,' . $imageModel->h,
-        ]);
+        $this->validate(
+            $request,
+            [
+                'width' => 'required|integer|between:1,' . $imageModel->w,
+                'height' => 'required|integer|between:1,' . $imageModel->h,
+                'x' => 'integer|between:0,' . $imageModel->w,
+                'y' => 'integer|between:0,' . $imageModel->h,
+            ]
+        );
 
         // Backup uncropped image
         $fileRepository->renameFile('img/' . $imageModel->filename, 'uncropped/' . $imageModel->filename);
@@ -359,14 +379,15 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {post} /image/{id}/uncrop Uncrop an Image
-     * @apiGroup Manipulating Images
+     * @api            {post} /image/{id}/uncrop Uncrop an Image
+     * @apiGroup       Manipulating Images
      * @apiDescription Revert the changes made by a prior crop operation. Returns an error if the image is not cropped.
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param  ImageModel  $imageModel
-     * @param  FileRepository $fileRepository
+     * @param ImageModel $imageModel
+     * @param FileRepository $fileRepository
+     *
      * @return Response
      */
     public function uncrop(ImageModel $imageModel, FileRepository $fileRepository)
@@ -396,18 +417,19 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {post} /image/{id}/annotation Add an Annotation
-     * @apiGroup Image Annotations
+     * @api            {post} /image/{id}/annotation Add an Annotation
+     * @apiGroup       Image Annotations
      * @apiDescription Add an annotation to an image. This will replace an existing annotation if it exists.
      * @apiParam {string} base64 Base64 encoded image to use as the annotation. This does not have to have the same
      *     dimensions as the image, but it must be the same ratio. It will be resized to the size of the image.
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param  Request  $request
-     * @param  ImageModel  $imageModel
-     * @param  ImageFactory $imageFactory
-     * @param  FileRepository $fileRepository
+     * @param Request $request
+     * @param ImageModel $imageModel
+     * @param ImageFactory $imageFactory
+     * @param FileRepository $fileRepository
+     *
      * @return Response
      */
     public function storeAnnotation(
@@ -418,9 +440,12 @@ class ImageController extends ApiController
     ) {
         $this->requireEditableImageModel($imageModel);
 
-        $this->validate($request, [
-            'base64' => 'required|string'
-        ]);
+        $this->validate(
+            $request,
+            [
+                'base64' => 'required|string'
+            ]
+        );
 
         $annotationImage = $imageFactory->createFromBase64String($request->input('base64'));
 
@@ -447,14 +472,15 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {delete} /image/{id}/annotation Delete an Annotation
-     * @apiGroup Image Annotations
+     * @api            {delete} /image/{id}/annotation Delete an Annotation
+     * @apiGroup       Image Annotations
      * @apiDescription Delete an image's annotation.
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param  ImageModel  $imageModel
-     * @param  FileRepository $fileRepository
+     * @param ImageModel $imageModel
+     * @param FileRepository $fileRepository
+     *
      * @return Response
      */
     public function destroyAnnotation(ImageModel $imageModel, FileRepository $fileRepository)
@@ -475,16 +501,17 @@ class ImageController extends ApiController
     }
 
     /**
-     * @api {delete} /image/{id} Delete an Image
-     * @apiGroup Images
+     * @api            {delete} /image/{id} Delete an Image
+     * @apiGroup       Images
      * @apiDescription Delete an image.
-     * @apiUse RequiresEditableImage
+     * @apiUse         RequiresEditableImage
      * @apiSuccessExample {json} Success Response
      *               {
      *                   "success": true
      *               }
      *
-     * @param  ImageModel  $imageModel
+     * @param ImageModel $imageModel
+     *
      * @return Response
      */
     public function destroy(ImageModel $imageModel)

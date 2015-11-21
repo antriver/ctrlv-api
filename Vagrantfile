@@ -16,7 +16,7 @@ Vagrant.configure("2") do |config|
         # using a specific IP.
         ctrlv.vm.network "private_network", ip: "192.168.33.20"
 
-        ctrlv.vm.synced_folder ".", "/var/www/ctrlv-api",  owner: "ctrlv", group: "ctrlv",  mount_options: ["dmode=777,fmode=777"]
+        ctrlv.vm.synced_folder ".", "/var/www/ctrlv-api",  owner: "www-data", group: "www-data",  mount_options: ["dmode=777,fmode=777"]
 
         ctrlv.vm.hostname = "api.ctrlv.vagrant"
         ctrlv.hostsupdater.aliases = ["img.ctrlv.vagrant"]

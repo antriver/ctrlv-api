@@ -2,8 +2,6 @@
 
 namespace CtrlV\Jobs;
 
-use Log;
-use CtrlV\Jobs\Job;
 use CtrlV\Models\ImageModel;
 use CtrlV\Repositories\FileRepository;
 use Illuminate\Queue\SerializesModels;
@@ -21,7 +19,7 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
     /**
      * Create a new job instance.
      *
-     * @return void
+     * @param ImageModel $imageModel
      */
     public function __construct(ImageModel $imageModel)
     {
@@ -32,6 +30,9 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
     /**
      * Execute the job.
      *
+     * @param FileRepository $fileRepository
+     *
+     * @throws \Exception
      * @return void
      */
     public function handle(FileRepository $fileRepository)

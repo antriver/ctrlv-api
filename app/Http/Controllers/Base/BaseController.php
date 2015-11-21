@@ -17,16 +17,18 @@ abstract class BaseController extends Controller
     /**
      * Validate the given request with the given rules.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  array  $rules
-     * @param  array  $messages
-     * @param  array  $customAttributes
+     * @param \Illuminate\Http\Request $request
+     * @param array $rules
+     * @param array $messages
+     * @param array $customAttributes
+     *
      * @return void
      *
      * @throws ValidationException
      */
     public function validate(Request $request, array $rules, array $messages = [], array $customAttributes = [])
     {
+        /** @var \Illuminate\Validation\Validator $validator */
         $validator = $this->getValidationFactory()->make($request->all(), $rules, $messages, $customAttributes);
 
         if ($validator->fails()) {

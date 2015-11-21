@@ -38,7 +38,8 @@ class CacheManager
      * Nginx needs this in its config:
      *     proxy_cache_bypass $http_purge_cache;
      *
-     * @param  string $relativePath
+     * @param string $url
+     *
      * @return null
      */
     public function purgeNginx($url)
@@ -61,10 +62,12 @@ class CacheManager
     {
         $cf = new CloudFlare(Config::get('services.cloudflare.email'), Config::get('services.cloudflare.key'));
 
-        $response = $cf->zone_file_purge(array(
-            'z' => Config::get('services.cloudflare.domain'),
-            'url' => $url
-        ));
+        $response = $cf->zone_file_purge(
+            array(
+                'z' => Config::get('services.cloudflare.domain'),
+                'url' => $url
+            )
+        );
 
         return $response['result'] == 'success';
     }

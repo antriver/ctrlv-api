@@ -2,22 +2,17 @@
 
 namespace CtrlV\Http\Controllers;
 
-use Request;
-use Response;
 use View;
 use CtrlV\Http\Controllers\Base\BaseController;
-
 use Browser\Browser;
 use Browser\Os;
 
 class UploaderController extends BaseController
 {
-    public function getIndex(Request $request)
+    public function getIndex()
     {
         $browser = new Browser;
         $os = new Os;
-
-        $agent = Request::header('User-Agent');
 
         $isMac = $os->getName() === 'OS X';
 
@@ -26,19 +21,21 @@ class UploaderController extends BaseController
         $crapBrowsers = ['Safari'];
         $canPaste = !in_array($browserName, $crapBrowsers);
 
-
-        return View::make('uploader.index', [
-            'isMac' => $isMac,
-            'canPaste' => $canPaste
-        ]);
+        return View::make(
+            'uploader.index',
+            [
+                'isMac' => $isMac,
+                'canPaste' => $canPaste
+            ]
+        );
     }
 
-    public function getXdframe(Request $request)
+    public function getXdframe()
     {
         return View::make('uploader.xdframe');
     }
 
-    public function getBlank(Request $request)
+    public function getBlank()
     {
         return '';
     }
