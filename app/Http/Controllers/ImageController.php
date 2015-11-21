@@ -8,7 +8,6 @@ use Config;
 use Input;
 use Response;
 use CtrlV\Http\Requests;
-use CtrlV\Http\Controllers\Base\ApiController;
 use CtrlV\Models\ImageModel;
 use CtrlV\Repositories\FileRepository;
 use CtrlV\Factories\ImageFactory;
@@ -39,7 +38,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
  * @apiParam {string} imageKey Editing key for the image (obtained when the image is created).
  *     **Either `sessionKey` or `imageKey` is required.**
  */
-class ImageController extends ApiController
+class ImageController extends Base\ApiController
 {
     /**
      * Ensure that the given ImageModel is viewable by the current visitor

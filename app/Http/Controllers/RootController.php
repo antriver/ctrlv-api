@@ -3,9 +3,8 @@
 namespace CtrlV\Http\Controllers;
 
 use Response;
-use Base\BaseController;
 
-class RootController extends BaseController
+class RootController extends Base\BaseController
 {
     public function getIndex()
     {

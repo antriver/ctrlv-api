@@ -3,11 +3,10 @@
 namespace CtrlV\Http\Controllers;
 
 use View;
-use CtrlV\Http\Controllers\Base\BaseController;
 use Browser\Browser;
 use Browser\Os;
 
-class UploaderController extends BaseController
+class UploaderController extends Base\BaseController
 {
     public function getIndex()
     {
