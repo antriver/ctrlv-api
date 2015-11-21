@@ -8,11 +8,65 @@ use DateTime;
 use Exception;
 use CtrlV\Jobs\MakeThumbnailJob;
 use CtrlV\Repositories\FileRepository;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Intervention\Image\Image;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
-class ImageModel extends EloquentModel
+/**
+ * CtrlV\Models\ImageModel
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Album[] $albums
+ * @property integer $imageID
+ * @property string $filename
+ * @property \Carbon\Carbon $date
+ * @property string $via
+ * @property string $IP
+ * @property integer $userID
+ * @property string $key
+ * @property string $uncroppedfilename
+ * @property string $caption
+ * @property integer $privacy
+ * @property string $password
+ * @property string $annotation
+ * @property string $notes
+ * @property boolean $thumb
+ * @property integer $w
+ * @property integer $h
+ * @property boolean $ocr
+ * @property boolean $ocrskip
+ * @property string $ocrtext
+ * @property boolean $ocrinprogress
+ * @property boolean $tagged
+ * @property integer $views
+ * @property integer $filesize
+ * @property string $batchID
+ * @property \Carbon\Carbon $expires_at
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereImageID($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereFilename($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereDate($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereVia($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereIP($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereUserID($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereKey($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereUncroppedfilename($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereCaption($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel wherePrivacy($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel wherePassword($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereAnnotation($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereNotes($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereThumb($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereW($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereH($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereOcr($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereOcrskip($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereOcrtext($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereOcrinprogress($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereTagged($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereViews($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereFilesize($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereBatchID($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereExpiresAt($value)
+ */
+class ImageModel extends Base\BaseModel
 {
     use DispatchesJobs;
 

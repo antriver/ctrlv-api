@@ -33,7 +33,6 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
      * @param FileRepository $fileRepository
      *
      * @throws \Exception
-     * @return void
      */
     public function handle(FileRepository $fileRepository)
     {

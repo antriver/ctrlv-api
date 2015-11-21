@@ -33,8 +33,6 @@ class RenameFileJob extends Job implements SelfHandling, ShouldQueue
      * Execute the job.
      *
      * @param FileRepository $fileRepository
-     *
-     * @return void
      */
     public function handle(FileRepository $fileRepository)
     {

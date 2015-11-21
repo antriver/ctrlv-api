@@ -17,6 +17,7 @@ abstract class ApiController extends BaseController
         if ($sessionKey = Input::get('sessionKey')) {
             if ($session = UserSession::findOrFail($sessionKey)) {
                 if ($user = User::findOrFail($session->userID)) {
+                    /** @var \Illuminate\Contracts\Auth\Authenticatable $user */
                     Auth::setUser($user);
                     // Note: setUser() not login() so the user is only logged in for this request
                 }

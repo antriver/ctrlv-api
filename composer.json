@@ -14,7 +14,8 @@
         "intervention/image": "^2.3",
         "okwinza/cloudflare-api": "^1.0",
         "barryvdh/laravel-ide-helper": "^2.1",
-        "tmd/auto-git-pull": "^2.1"
+        "tmd/auto-git-pull": "^2.1",
+        "doctrine/dbal": "^2.5"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

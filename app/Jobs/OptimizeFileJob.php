@@ -35,8 +35,6 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
      *
      * @param FileRepository $fileRepository
      * @param CacheManager $cacheManager
-     *
-     * @return void
      */
     public function handle(FileRepository $fileRepository, CacheManager $cacheManager)
     {

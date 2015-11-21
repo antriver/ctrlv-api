@@ -29,7 +29,7 @@ class Prune extends Command
     public function handle()
     {
         $cmd = <<<EOT
-# Delete jpg and png files that havent been modified in the last 7 days
+# Delete jpg and png files that haven't been modified in the last 7 days
 find /var/www/ctrlv/img/ -type f -mtime +7 -regex '.*\.\(jpg\|png\)' -exec rm {} \; -print
 
 # Clear temporary crud

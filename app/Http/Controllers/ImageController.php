@@ -115,6 +115,7 @@ class ImageController extends Base\ApiController
 
         $imageModel->saveWithNewImage($image, false);
 
+        /** @var ImageModel $imageModel */
         $imageModel = $imageModel->fresh();
 
         $imageModelArray = $imageModel->toArray();

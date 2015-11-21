@@ -22,8 +22,6 @@ abstract class BaseController extends Controller
      * @param array $messages
      * @param array $customAttributes
      *
-     * @return void
-     *
      * @throws ValidationException
      */
     public function validate(Request $request, array $rules, array $messages = [], array $customAttributes = [])

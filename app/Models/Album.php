@@ -2,9 +2,12 @@
 
 namespace CtrlV\Models;
 
-use Illuminate\Database\Eloquent\Model as EloquentModel;
-
-class Album extends EloquentModel
+/**
+ * CtrlV\Models\Album
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\ImageModel[] $images
+ */
+class Album extends Base\BaseModel
 {
     protected $guarded = [];
 
