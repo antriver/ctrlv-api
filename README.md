@@ -1,8 +1,8 @@
 # CtrlV API
 
 ## Terminology
-*Image: InterventionImage objext
-*ImageModel: Database model for a saved image
+*Picture: Intervention\Image\Image object.
+*Image: Image metadata stored in the database.
 
 ## Running The Queue
 ```bash

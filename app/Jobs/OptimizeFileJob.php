@@ -4,7 +4,7 @@ namespace CtrlV\Jobs;
 
 use Config;
 use CtrlV\Libraries\CacheManager;
-use CtrlV\Repositories\FileRepository;
+use CtrlV\Libraries\FileManager;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;
@@ -33,20 +33,20 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
     /**
      * Execute the job.
      *
-     * @param FileRepository $fileRepository
+     * @param FileManager $fileRepository
      * @param CacheManager $cacheManager
      */
-    public function handle(FileRepository $fileRepository, CacheManager $cacheManager)
+    public function handle(FileManager $fileRepository, CacheManager $cacheManager)
     {
         $this->logger->debug("Optimizing file {$this->relativePath} attempt {$this->attempts()}");
 
-        $this->optimizeImage();
+        $this->optimize();
 
         $fileRepository->copyToRemote($this->relativePath);
         $cacheManager->purge($this->relativePath);
     }
 
-    private function optimizeImage()
+    private function optimize()
     {
         $tmpFileName = 'ctrlv-optimize-' . md5($this->relativePath);
         $tempSourcePath = tempnam('/tmp', $tmpFileName . '-in');
@@ -79,8 +79,12 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
 
         passthru($cmd);
 
-        unlink($tempSourcePath);
-        unlink($tempDestPath);
+        if (file_exists($tempSourcePath)) {
+            unlink($tempSourcePath);
+        }
+        if (file_exists($tempDestPath)) {
+            unlink($tempDestPath);
+        }
 
         return true;
     }

@@ -18,7 +18,7 @@ class Prune extends Command
      *
      * @var string
      */
-    protected $description = 'Delete local image files not modified in the last 7 days';
+    protected $description = 'Delete local files not modified in the last 7 days';
 
 
     /**

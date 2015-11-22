@@ -1,5 +1,11 @@
 <?php
 
+use Illuminate\Routing\Router;
+
+/**
+ * @var Router $router
+ */
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -11,22 +17,23 @@
 |
 */
 
-Route::model('image', '\CtrlV\Models\ImageModel');
+$router->get('/', ['uses' => 'RootController@getIndex']);
 
-Route::get('/', ['uses' => 'RootController@getIndex']);
+$router->get('uploader', ['uses' => 'UploaderController@getIndex']);
+$router->get('uploader/xdframe', ['uses' => 'UploaderController@getXdframe']);
+$router->get('uploader/blank', ['uses' => 'UploaderController@getBlank']);
 
-Route::get('uploader', ['uses' => 'UploaderController@getIndex']);
-Route::get('uploader/xdframe', ['uses' => 'UploaderController@getXdframe']);
-Route::get('uploader/blank', ['uses' => 'UploaderController@getBlank']);
+$router->resource('album', 'AlbumController', ['only' => ['store', 'show', 'update', 'destroy']]);
 
-Route::get('image/{image}/image', ['uses' => 'ImageController@view']);
-Route::get('image/{image}/thumbnail', ['uses' => 'ImageController@viewThumbnail']);
-Route::post('image/{image}/rotate', ['uses' => 'ImageController@rotate']);
-Route::post('image/{image}/crop', ['uses' => 'ImageController@crop']);
-Route::post('image/{image}/uncrop', ['uses' => 'ImageController@uncrop']);
-Route::get('image/{image}/annotation', ['uses' => 'ImageController@viewAnnotation']);
-Route::post('image/{image}/annotation', ['uses' => 'ImageController@storeAnnotation']);
-Route::delete('image/{image}/annotation', ['uses' => 'ImageController@destroyAnnotation']);
-Route::resource('image', 'ImageController', ['only' => ['store', 'show', 'update', 'destroy']]);
+$router->get('image/{image}/image', ['uses' => 'ImageController@view']);
+$router->get('image/{image}/thumbnail', ['uses' => 'ImageController@viewThumbnail']);
+$router->post('image/{image}/rotate', ['uses' => 'ImageController@rotate']);
+$router->post('image/{image}/crop', ['uses' => 'ImageController@crop']);
+$router->post('image/{image}/uncrop', ['uses' => 'ImageController@uncrop']);
+$router->get('image/{image}/annotation', ['uses' => 'ImageController@viewAnnotation']);
+$router->post('image/{image}/annotation', ['uses' => 'ImageController@storeAnnotation']);
+$router->delete('image/{image}/annotation', ['uses' => 'ImageController@destroyAnnotation']);
+$router->resource('image', 'ImageController', ['only' => ['store', 'show', 'update', 'destroy']]);
 
-Route::resource('album', 'AlbumController', ['only' => ['store', 'show', 'update', 'destroy']]);
+
+$router->resource('user', 'UserController', ['only' => ['store', 'show', 'update']]);

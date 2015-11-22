@@ -23,7 +23,9 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(Router $router)
     {
-        //
+        $router->model('album', '\CtrlV\Models\Album');
+        $router->model('image', '\CtrlV\Models\ImageModel');
+        $router->model('user', '\CtrlV\Models\User');
 
         parent::boot($router);
     }
@@ -37,7 +39,7 @@ class RouteServiceProvider extends ServiceProvider
     {
         $router->group(
             ['namespace' => $this->namespace],
-            function () {
+            function ($router) {
                 require dirname(__DIR__) . '/Http/routes.php';
             }
         );

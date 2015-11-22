@@ -3,14 +3,14 @@
 namespace CtrlV\Http\Controllers;
 
 use App;
-use Auth;
 use Config;
+use Illuminate\Auth\Guard;
 use Input;
 use Response;
 use CtrlV\Http\Requests;
-use CtrlV\Models\ImageModel;
-use CtrlV\Repositories\FileRepository;
-use CtrlV\Factories\ImageFactory;
+use CtrlV\Models\Image;
+use CtrlV\Libraries\FileManager;
+use CtrlV\Libraries\PictureManager;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -41,35 +41,33 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class ImageController extends Base\ApiController
 {
     /**
-     * Ensure that the given ImageModel is viewable by the current visitor
+     * Ensure that the given Image is viewable by the current visitor
      *
-     * @param ImageModel $imageModel
+     * @param Image $image
      *
      * @throws HttpException
      * @return boolean
      */
-    private function requireViewableImageModel(ImageModel $imageModel)
+    private function requireViewableImageModel(Image $image)
     {
-        if (!$imageModel->isViewable(Input::get('password'))) {
-            App::abort(403, "You don't have permission to view that image.");
-            return false;
+        if (!$image->isViewable(Input::get('password'))) {
+            throw new HttpException(403, "You don't have permission to view that image.");
         }
         return true;
     }
 
     /**
-     * Ensure that the given ImageModel is editable by the current visitor
+     * Ensure that the given Image is editable by the current visitor
      *
-     * @param ImageModel $imageModel
+     * @param Image $image
      *
      * @throws HttpException
      * @return boolean
      */
-    private function requireEditableImageModel(ImageModel $imageModel)
+    private function requireEditableImageModel(Image $image)
     {
-        if (!$imageModel->isEditable(Input::get('imageKey'))) {
-            App::abort(403, "You don't have permission to modify that image.");
-            return false;
+        if (!$image->isEditable(Input::get('imageKey'))) {
+            throw new HttpException(403, "You don't have permission to modify that image.");
         }
         return true;
     }
@@ -83,47 +81,51 @@ class ImageController extends Base\ApiController
      * @apiUse         ImageSuccessResponse
      *
      * @param Request $request
-     * @param ImageFactory $imageFactory
+     * @param PictureManager $pictureManager
+     * @param Guard $auth
      *
+     * @throws \Exception
      * @return Response
      */
-    public function store(Request $request, ImageFactory $imageFactory)
+    public function store(Request $request, PictureManager $pictureManager, Guard $auth)
     {
         if ($request->has('base64')) {
-            $image = $imageFactory->createFromBase64String($request->input('base64'));
-
+            $picture = $pictureManager->createFromBase64String($request->input('base64'));
         } elseif ($request->hasFile('file')) {
-            $image = $imageFactory->createFromUploadedFile($request->file('file'));
-
+            $picture = $pictureManager->createFromUploadedFile($request->file('file'));
         } else {
             throw new HttpException(400, 'Please provide a base64 image or uploaded file');
-
         }
 
-        if (empty($image)) {
-            App::abort(500);
+        if (empty($picture)) {
+            throw new HttpException(500);
         }
 
-        $userID = Auth::check() ? Auth::user()->userID : null;
+        $userId = null;
+        if ($auth->check()) {
+            /** @var \CtrlV\Models\User $user */
+            $user = $auth->user();
+            $userId = $user->id;
+        }
 
-        $imageModel = new ImageModel(
+        $image = new Image(
             [
                 'IP' => $request->ip(),
-                'userID' => $userID,
+                'userID' => $userId,
             ]
         );
 
-        $imageModel->saveWithNewImage($image, false);
+        $image->saveWithNewPicture($picture);
 
-        /** @var ImageModel $imageModel */
-        $imageModel = $imageModel->fresh();
+        /** @var Image $image */
+        $image = $image->fresh();
 
-        $imageModelArray = $imageModel->toArray();
-        $imageModelArray['key'] = $imageModel->key;
+        $imageArray = $image->toArray();
+        $imageArray['key'] = $image->key;
 
         return Response::json(
             [
-                'image' => $imageModelArray,
+                'image' => $imageArray,
                 'success' => true,
             ]
         );
@@ -158,14 +160,14 @@ class ImageController extends Base\ApiController
      *     }
      *   }
      *
-     * @param ImageModel $imageModel
+     * @param Image $image
      *
      * @return Response
      */
-    public function show(ImageModel $imageModel)
+    public function show(Image $image)
     {
-        $this->requireViewableImageModel($imageModel);
-        return Response::json(['image' => $imageModel]);
+        $this->requireViewableImageModel($image);
+        return Response::json(['image' => $image]);
     }
 
     /**
@@ -174,21 +176,21 @@ class ImageController extends Base\ApiController
      * @apiDescription Returns an HTTP 302 redirect to the image file.
      * @apiUse         RequiresViewableImage
      *
-     * @param ImageModel $imageModel
+     * @param Image $image
      *
      * @return Response
      */
-    public function view(ImageModel $imageModel)
+    public function view(Image $image)
     {
-        $this->requireViewableImageModel($imageModel);
+        $this->requireViewableImageModel($image);
 
         // Display the image right now instead of redirecting to the correct URL
         // This is good for testing but bad for production
         if (Input::has('display')) {
-            return $imageModel->getImage()->response();
+            return $image->getPicture()->response();
         }
 
-        return redirect(Config::get('app.data_url') . 'img/' . $imageModel->filename);
+        return redirect(Config::get('app.data_url') . 'img/' . $image->filename);
     }
 
     /**
@@ -197,19 +199,19 @@ class ImageController extends Base\ApiController
      * @apiDescription Returns an HTTP 302 redirect to the thumbnail image file. The thumbnail is 200x200px
      * @apiUse         RequiresViewableImage
      *
-     * @param ImageModel $imageModel
+     * @param Image $image
      *
      * @return Response
      */
-    public function viewThumbnail(ImageModel $imageModel)
+    public function viewThumbnail(Image $image)
     {
-        $this->requireViewableImageModel($imageModel);
+        $this->requireViewableImageModel($image);
 
-        if (!$imageModel->thumb) {
+        if (!$image->thumb) {
             return $this->error('There is no thumbnail for this image.', 404);
         }
 
-        return redirect(Config::get('app.data_url') . 'thumb/' . $imageModel->filename);
+        return redirect(Config::get('app.data_url') . 'thumb/' . $image->filename);
 
     }
 
@@ -219,19 +221,19 @@ class ImageController extends Base\ApiController
      * @apiDescription Returns an HTTP 302 redirect to the annotation image file.
      * @apiUse         RequiresViewableImage
      *
-     * @param ImageModel $imageModel
+     * @param Image $image
      *
      * @return Response
      */
-    public function viewAnnotation(ImageModel $imageModel)
+    public function viewAnnotation(Image $image)
     {
-        $this->requireViewableImageModel($imageModel);
+        $this->requireViewableImageModel($image);
 
-        if (!$imageModel->annotation) {
+        if (!$image->annotation) {
             return $this->error('There is no annotation for this image.', 404);
         }
 
-        return redirect(Config::get('app.data_url') . 'annotation/' . $imageModel->annotation);
+        return redirect(Config::get('app.data_url') . 'annotation/' . $image->annotation);
 
     }
 
@@ -247,13 +249,13 @@ class ImageController extends Base\ApiController
      * @apiUse         ImageSuccessResponse
      *
      * @param Request $request
-     * @param ImageModel $imageModel
+     * @param Image $image
      *
      * @return Response
      */
-    public function update(Request $request, ImageModel $imageModel)
+    public function update(Request $request, Image $image)
     {
-        $this->requireEditableImageModel($imageModel);
+        $this->requireEditableImageModel($image);
 
         $this->validate(
             $request,
@@ -265,20 +267,20 @@ class ImageController extends Base\ApiController
         );
 
         if ($request->exists('caption')) {
-            $imageModel->caption = $request->input('caption');
+            $image->caption = $request->input('caption');
         }
 
         if ($request->exists('privacy')) {
-            $imageModel->privacy = $request->input('privacy');
+            $image->privacy = $request->input('privacy');
         }
 
         if ($request->exists('password')) {
-            $imageModel->password = md5($request->input('password'));
+            $image->password = md5($request->input('password'));
         }
 
-        $success = $imageModel->isDirty() ? $imageModel->save() : false;
+        $success = $image->isDirty() ? $image->save() : false;
 
-        return Response::json(['success' => $success, 'image' => $imageModel->fresh()]);
+        return Response::json(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
@@ -291,13 +293,13 @@ class ImageController extends Base\ApiController
      * @apiUse         ImageSuccessResponse
      *
      * @param Request $request
-     * @param ImageModel $imageModel
+     * @param Image $image
      *
      * @return Response
      */
-    public function rotate(Request $request, ImageModel $imageModel)
+    public function rotate(Request $request, Image $image)
     {
-        $this->requireEditableImageModel($imageModel);
+        $this->requireEditableImageModel($image);
 
         $this->validate(
             $request,
@@ -314,13 +316,13 @@ class ImageController extends Base\ApiController
             $degrees = -$degrees;
         }
 
-        $image = $imageModel->getImage();
+        $picture = $image->getPicture();
 
-        $image->rotate($degrees);
+        $picture->rotate($degrees);
 
-        $success = $imageModel->saveWithNewImage($image);
+        $success = $image->saveWithNewPicture($picture);
 
-        return Response::json(['success' => $success, 'image' => $imageModel->fresh()]);
+        return Response::json(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
@@ -336,34 +338,34 @@ class ImageController extends Base\ApiController
      * @apiUse         ImageSuccessResponse
      *
      * @param Request $request
-     * @param ImageModel $imageModel
-     * @param FileRepository $fileRepository
+     * @param Image $image
+     * @param FileManager $fileManager
      *
      * @return Response
      */
-    public function crop(Request $request, ImageModel $imageModel, FileRepository $fileRepository)
+    public function crop(Request $request, Image $image, FileManager $fileManager)
     {
-        $this->requireEditableImageModel($imageModel);
+        $this->requireEditableImageModel($image);
 
-        if ($imageModel->uncroppedfilename) {
+        if ($image->uncroppedfilename) {
             return $this->error('Image is already cropped.');
         }
 
         $this->validate(
             $request,
             [
-                'width' => 'required|integer|between:1,' . $imageModel->w,
-                'height' => 'required|integer|between:1,' . $imageModel->h,
-                'x' => 'integer|between:0,' . $imageModel->w,
-                'y' => 'integer|between:0,' . $imageModel->h,
+                'width' => 'required|integer|between:1,' . $image->w,
+                'height' => 'required|integer|between:1,' . $image->h,
+                'x' => 'integer|between:0,' . $image->w,
+                'y' => 'integer|between:0,' . $image->h,
             ]
         );
 
         // Backup uncropped image
-        $fileRepository->renameFile('img/' . $imageModel->filename, 'uncropped/' . $imageModel->filename);
-        $imageModel->uncroppedfilename = $imageModel->filename;
+        $fileManager->renameFile('img/' . $image->filename, 'uncropped/' . $image->filename);
+        $image->uncroppedfilename = $image->filename;
 
-        $image = $imageModel->getImage();
+        $picture = $image->getPicture();
 
         $width = $request->input('width');
         $height = $request->input('height');
@@ -371,11 +373,11 @@ class ImageController extends Base\ApiController
         $xPos = $request->has('x') ? (int)$request->input('x') : 0;
         $yPos = $request->has('y') ? (int)$request->input('y') : 0;
 
-        $image->crop($width, $height, $xPos, $yPos);
+        $picture->crop($width, $height, $xPos, $yPos);
 
-        $success = $imageModel->saveWithNewImage($image);
+        $success = $image->saveWithNewPicture($picture);
 
-        return Response::json(['success' => $success, 'image' => $imageModel->fresh()]);
+        return Response::json(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
@@ -385,35 +387,35 @@ class ImageController extends Base\ApiController
      * @apiUse         RequiresEditableImage
      * @apiUse         ImageSuccessResponse
      *
-     * @param ImageModel $imageModel
-     * @param FileRepository $fileRepository
+     * @param Image $image
+     * @param FileManager $fileManager
      *
      * @return Response
      */
-    public function uncrop(ImageModel $imageModel, FileRepository $fileRepository)
+    public function uncrop(Image $image, FileManager $fileManager)
     {
-        $this->requireEditableImageModel($imageModel);
+        $this->requireEditableImageModel($image);
 
-        if (!$imageModel->uncroppedfilename) {
+        if (!$image->uncroppedfilename) {
             return $this->error('Image is not cropped.');
         }
 
-        $uncroppedImage = $fileRepository->getImage('uncropped/' . $imageModel->uncroppedfilename);
+        $uncroppedPicture = $fileManager->getPicture('uncropped/' . $image->uncroppedfilename);
 
         // Copy back uncropped image
-        $fileRepository->renameFile(
-            'uncropped/' . $imageModel->uncroppedfilename,
-            'img/' . $imageModel->uncroppedfilename
+        $fileManager->renameFile(
+            'uncropped/' . $image->uncroppedfilename,
+            'img/' . $image->uncroppedfilename
         );
 
-        $imageModel->setImageMetadata($uncroppedImage);
-        $imageModel->filename = $imageModel->uncroppedfilename;
-        $imageModel->uncroppedfilename = null;
+        $image->setMetadataFromPicture($uncroppedPicture);
+        $image->filename = $image->uncroppedfilename;
+        $image->uncroppedfilename = null;
 
-        $success = $imageModel->save();
-        // ImageModel will take care of deleting the old image
+        $success = $image->save();
+        // Image will take care of deleting the old image. Should it though?
 
-        return Response::json(['success' => $success, 'image' => $imageModel->fresh()]);
+        return Response::json(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
@@ -426,19 +428,19 @@ class ImageController extends Base\ApiController
      * @apiUse         ImageSuccessResponse
      *
      * @param Request $request
-     * @param ImageModel $imageModel
-     * @param ImageFactory $imageFactory
-     * @param FileRepository $fileRepository
+     * @param Image $image
+     * @param PictureManager $pictureManager
+     * @param FileManager $fileManager
      *
      * @return Response
      */
     public function storeAnnotation(
         Request $request,
-        ImageModel $imageModel,
-        ImageFactory $imageFactory,
-        FileRepository $fileRepository
+        Image $image,
+        PictureManager $pictureManager,
+        FileManager $fileManager
     ) {
-        $this->requireEditableImageModel($imageModel);
+        $this->requireEditableImageModel($image);
 
         $this->validate(
             $request,
@@ -447,11 +449,11 @@ class ImageController extends Base\ApiController
             ]
         );
 
-        $annotationImage = $imageFactory->createFromBase64String($request->input('base64'));
+        $annotationPicture = $pictureManager->createFromBase64String($request->input('base64'));
 
         // Make sure the annotation can be resized to the image's size nicely
-        $annotationRatio = round($annotationImage->width() / $annotationImage->height(), 2);
-        $imageRatio = round($imageModel->w / $imageModel->h, 2);
+        $annotationRatio = round($annotationPicture->width() / $annotationPicture->height(), 2);
+        $imageRatio = round($image->w / $image->h, 2);
         if ($annotationRatio !== $imageRatio) {
             App::abort(
                 422,
@@ -460,15 +462,15 @@ class ImageController extends Base\ApiController
         }
 
         // Resize annotation to the size of the image
-        $annotationImage->resize($imageModel->w, $imageModel->h);
+        $annotationPicture->resize($image->w, $image->h);
 
-        $annotationFilename = $fileRepository->saveImage($annotationImage, 'annotation');
+        $annotationFilename = $fileManager->savePicture($annotationPicture, 'annotation');
 
-        $imageModel->annotation = $annotationFilename;
+        $image->annotation = $annotationFilename;
 
-        $success = $imageModel->save();
+        $success = $image->save();
 
-        return Response::json(['success' => $success, 'image' => $imageModel->fresh()]);
+        return Response::json(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
@@ -478,26 +480,26 @@ class ImageController extends Base\ApiController
      * @apiUse         RequiresEditableImage
      * @apiUse         ImageSuccessResponse
      *
-     * @param ImageModel $imageModel
-     * @param FileRepository $fileRepository
+     * @param Image $image
+     * @param FileManager $fileManager
      *
      * @return Response
      */
-    public function destroyAnnotation(ImageModel $imageModel, FileRepository $fileRepository)
+    public function destroyAnnotation(Image $image, FileManager $fileManager)
     {
-        $this->requireEditableImageModel($imageModel);
+        $this->requireEditableImageModel($image);
 
-        if (!$imageModel->annotation) {
+        if (!$image->annotation) {
             App::abort(400, "This image does not have an annotation.");
         }
 
-        $fileRepository->deleteFile('annotation/' . $imageModel->annotation);
+        $fileManager->deleteFile('annotation/' . $image->annotation);
 
-        $imageModel->annotation = null;
+        $image->annotation = null;
 
-        $success = $imageModel->save();
+        $success = $image->save();
 
-        return Response::json(['success' => $success, 'image' => $imageModel->fresh()]);
+        return Response::json(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
@@ -510,13 +512,13 @@ class ImageController extends Base\ApiController
      *                   "success": true
      *               }
      *
-     * @param ImageModel $imageModel
+     * @param Image $image
      *
      * @return Response
      */
-    public function destroy(ImageModel $imageModel)
+    public function destroy(Image $image)
     {
-        $this->requireEditableImageModel($imageModel);
-        return Response::json(['success' => $imageModel->delete()]);
+        $this->requireEditableImageModel($image);
+        return Response::json(['success' => $image->delete()]);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace CtrlV\Jobs;
 
-use CtrlV\Models\ImageModel;
-use CtrlV\Repositories\FileRepository;
+use CtrlV\Models\Image;
+use CtrlV\Libraries\FileManager;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;
@@ -14,40 +14,40 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
     use InteractsWithQueue;
     use SerializesModels;
 
-    private $imageModel;
+    private $image;
 
     /**
      * Create a new job instance.
      *
-     * @param ImageModel $imageModel
+     * @param Image $image
      */
-    public function __construct(ImageModel $imageModel)
+    public function __construct(Image $image)
     {
-        $this->imageModel = $imageModel;
+        $this->image = $image;
         parent::__construct();
     }
 
     /**
      * Execute the job.
      *
-     * @param FileRepository $fileRepository
+     * @param FileManager $fileRepository
      *
      * @throws \Exception
      */
-    public function handle(FileRepository $fileRepository)
+    public function handle(FileManager $fileRepository)
     {
         $this->logger->debug(
-            "Generating thumbnail for image img/{$this->imageModel->filename} attempt {$this->attempts()}"
+            "Generating thumbnail for image img/{$this->image->filename} attempt {$this->attempts()}"
         );
 
         // Get full size image
-        $image = $fileRepository->getImage('img/' . $this->imageModel->filename);
+        $picture = $fileRepository->getPicture('img/' . $this->image->filename);
 
-        $image->fit(200);
+        $picture->fit(200);
 
-        if ($fileRepository->saveImage($image, 'thumb', $this->imageModel->filename)) {
-            $this->imageModel->thumb = true;
-            $this->imageModel->save();
+        if ($fileRepository->savePicture($picture, 'thumb', $this->image->filename)) {
+            $this->image->thumb = true;
+            $this->image->save();
         }
     }
 }

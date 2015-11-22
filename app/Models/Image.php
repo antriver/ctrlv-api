@@ -7,12 +7,12 @@ use Config;
 use DateTime;
 use Exception;
 use CtrlV\Jobs\MakeThumbnailJob;
-use CtrlV\Repositories\FileRepository;
-use Intervention\Image\Image;
+use CtrlV\Libraries\FileManager;
+use Intervention\Image\Image as Picture;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
 /**
- * CtrlV\Models\ImageModel
+ * CtrlV\Models\Image
  *
  * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Album[] $albums
  * @property integer $imageID
@@ -40,33 +40,33 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
  * @property integer $filesize
  * @property string $batchID
  * @property \Carbon\Carbon $expires_at
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereImageID($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereFilename($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereDate($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereVia($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereIP($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereUserID($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereKey($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereUncroppedfilename($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereCaption($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel wherePrivacy($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel wherePassword($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereAnnotation($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereNotes($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereThumb($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereW($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereH($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereOcr($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereOcrskip($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereOcrtext($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereOcrinprogress($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereTagged($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereViews($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereFilesize($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereBatchID($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageModel whereExpiresAt($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereImageID($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereFilename($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereDate($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereVia($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereIP($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUserID($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereKey($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUncroppedfilename($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereCaption($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image wherePrivacy($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image wherePassword($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereAnnotation($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereNotes($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereThumb($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereW($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereH($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereOcr($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereOcrskip($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereOcrtext($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereOcrinprogress($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereTagged($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereViews($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereFilesize($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereBatchID($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereExpiresAt($value)
  */
-class ImageModel extends Base\BaseModel
+class Image extends Base\BaseModel
 {
     use DispatchesJobs;
 
@@ -105,7 +105,7 @@ class ImageModel extends Base\BaseModel
         'via',
     ];
 
-    protected $primaryKey = 'imageID';
+    protected $primaryKey = 'id';
 
     protected $table = 'images';
 
@@ -113,7 +113,7 @@ class ImageModel extends Base\BaseModel
 
     public function albums()
     {
-        return $this->belongsToMany('CtrlV\Models\Album', 'image_tags', 'imageID', 'tagID');
+        return $this->belongsToMany('CtrlV\Models\Album', 'image_albums', 'imageId', 'albumId');
     }
 
     /**
@@ -196,30 +196,32 @@ class ImageModel extends Base\BaseModel
         return Auth::check() && $this->userID && Auth::user()->userID == $this->userID;
     }
 
-    public function setImageMetadata(Image $image)
+    public function setMetadataFromPicture(Picture $picture)
     {
-        $this->filesize = $image->filesize();
-        $this->h = $image->height();
-        $this->w = $image->width();
+        $this->filesize = $picture->filesize();
+        $this->h = $picture->height();
+        $this->w = $picture->width();
     }
 
-    public function saveWithNewImage(Image $image)
+    public function saveWithNewPicture(Picture $picture)
     {
-        $fileRepository = new FileRepository();
+        // FIXME: Use DI
+        $fileRepository = new FileManager();
 
-        if (!$filename = $fileRepository->saveImage($image)) {
+        if (!$filename = $fileRepository->savePicture($picture)) {
             throw new Exception("Unable to store image file");
         }
 
-        $this->setImageMetadata($image);
+        $this->setMetadataFromPicture($picture);
         $this->filename = $filename;
         return $this->save();
     }
 
-    public function getImage()
+    public function getPicture()
     {
-        $fileRepository = new FileRepository();
-        return $fileRepository->getImage('img/' . $this->filename);
+        // FIXME: Use DI
+        $fileRepository = new FileManager();
+        return $fileRepository->getPicture('img/' . $this->filename);
     }
 
     /**
@@ -251,7 +253,8 @@ class ImageModel extends Base\BaseModel
         // We add the generate thumbnail job after saving to avoid any race conditions
         if ($makeThumb) {
             if ($originalFilename) {
-                $fileRepository = new FileRepository();
+                // FIXME: Use DI
+                $fileRepository = new FileManager();
                 $fileRepository->deleteFile('img/' . $originalFilename);
                 $fileRepository->deleteFile('thumb/' . $originalFilename);
             }
@@ -266,7 +269,7 @@ class ImageModel extends Base\BaseModel
     // TODO: What if jobs are currently processing/waiting?
     public function delete()
     {
-        $fileRepository = new FileRepository();
+        $fileRepository = new FileManager();
 
         $fileRepository->deleteFile('img/' . $this->filename);
 
@@ -293,12 +296,12 @@ class ImageModel extends Base\BaseModel
 
         // Attach event handler, on deleting of the user
         self::creating(
-            function (ImageModel $imageModel) {
+            function (Image $image) {
 
-                $imageModel->generateKey();
+                $image->generateKey();
 
                 $date = new DateTime;
-                $imageModel->date = $date->format('Y-m-d H:i:s');
+                $image->date = $date->format('Y-m-d H:i:s');
 
             }
         );

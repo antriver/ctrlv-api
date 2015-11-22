@@ -1,25 +1,22 @@
 <?php
 
 /**
- * FileRepository saves/loads Images to/from the file system.
+ * FileManager saves/loads Pictures to/from the file system.
  */
 
-namespace CtrlV\Repositories;
+namespace CtrlV\Libraries;
 
 use AWS;
 use Config;
 use Exception;
 use InterventionFacade;
-
 use CtrlV\Jobs\DeleteFileJob;
 use CtrlV\Jobs\RenameFileJob;
 use CtrlV\Jobs\OptimizeFileJob;
-use CtrlV\Libraries\CacheManager;
-
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Intervention\Image\Image;
+use Intervention\Image\Image as Picture;
 
-class FileRepository
+class FileManager
 {
     use DispatchesJobs;
 
@@ -58,13 +55,13 @@ class FileRepository
     }
 
     /**
-     * Return an Image object from the given relativePath.
+     * Return a Picture object from the given relativePath.
      *
      * @param string $relativePath
      *
-     * @return Image|null
+     * @return Picture|null
      */
-    public function getImage($relativePath)
+    public function getPicture($relativePath)
     {
         if ($this->localFileExists($relativePath)) {
             return InterventionFacade::make($this->localDir . $relativePath);
@@ -78,20 +75,20 @@ class FileRepository
     }
 
     /**
-     * Save an Image object to the file system.
+     * Save an Picture object to the file system.
      * Runs OptimizeFileJob on the file after it is saved.
      *
-     * @param Image $image
+     * @param Picture $picture
      * @param string $type IMAGE|ANNOTATION|THUMB
      * @param string $filename
      *
      * @throws Exception
      * @return string Path to the saved file relative to the localDir
      */
-    public function saveImage(Image $image, $type = 'img', $filename = null)
+    public function savePicture(Picture $picture, $type = 'img', $filename = null)
     {
         if (!$filename) {
-            $mime = $image->mime();
+            $mime = $picture->mime();
             if (empty($mime)) {
                 $mime = 'image/jpeg';
             }
@@ -103,7 +100,7 @@ class FileRepository
         $relativePath = $type . '/' . $filename;
 
         // Save locally
-        if (!$this->saveImageLocally($image, $relativePath)) {
+        if (!$this->savePictureLocally($picture, $relativePath)) {
             throw new Exception('Unable to save file locally.');
         }
 
@@ -114,7 +111,7 @@ class FileRepository
     }
 
     /**
-     * Save an file in the local filesystem.
+     * Save a file in the local filesystem.
      *
      * @param string $contents
      * @param string $relativePath Relative to localDir
@@ -131,18 +128,18 @@ class FileRepository
     }
 
     /**
-     * Save an image in the local filesystem.
+     * Save a picture in the local filesystem.
      *
-     * @param Image $image
+     * @param Picture $picture
      * @param string $relativePath Relative to localDir
      *
      * @return boolean
      */
-    private function saveImageLocally(Image $image, $relativePath)
+    private function savePictureLocally(Picture $picture, $relativePath)
     {
         $this->createLocalDirectory(dirname($relativePath));
 
-        $result = $image->save($this->localDir . $relativePath);
+        $result = $picture->save($this->localDir . $relativePath);
         clearstatcache();
         return $result;
     }
@@ -270,12 +267,17 @@ class FileRepository
      *
      * @param string $relativePath
      *
-     * @return object
+     * @return bool
      */
     public function deleteFromRemote($relativePath)
     {
         $s3Client = $this->getS3Client();
-        return $s3Client->deleteMatchingObjects($this->s3BucketName, $relativePath);
+        try {
+            $s3Client->deleteMatchingObjects($this->s3BucketName, $relativePath);
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
     }
 
     /**

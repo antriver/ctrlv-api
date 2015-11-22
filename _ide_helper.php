@@ -2846,7 +2846,7 @@ namespace {
          * @param string $operator
          * @param mixed $value
          * @param string $boolean
-         * @return $this
+         * @return static
          * @static
          */
         public static function where($column, $operator = null, $value = null, $boolean = 'and'){

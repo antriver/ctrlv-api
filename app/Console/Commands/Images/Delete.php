@@ -3,7 +3,7 @@
 namespace CtrlV\Console\Commands\Images;
 
 use Illuminate\Console\Command;
-use CtrlV\Models\ImageModel;
+use CtrlV\Models\Image;
 
 class Delete extends Command
 {
@@ -28,7 +28,7 @@ class Delete extends Command
      */
     public function handle()
     {
-        $image = ImageModel::findOrFail($this->argument('id'));
+        $image = Image::findOrFail($this->argument('id'));
         var_dump($image->delete());
     }
 }

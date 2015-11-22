@@ -3,8 +3,8 @@
 namespace CtrlVTests;
 
 use Config;
-use CtrlV\Factories\ImageFactory;
-use CtrlV\Repositories\FileRepository;
+use CtrlV\Libraries\PictureManager;
+use CtrlV\Libraries\FileManager;
 use CtrlV\Libraries\CacheManager;
 
 class CachePurgeTest extends TestCase
@@ -19,12 +19,12 @@ class CachePurgeTest extends TestCase
     private $s3Url;
 
     /**
-     * @var ImageFactory
+     * @var PictureManager
      */
     private $imageFactory;
 
     /**
-     * @var FileRepository
+     * @var FileManager
      */
     private $fileRepository;
 
@@ -50,8 +50,8 @@ class CachePurgeTest extends TestCase
             . $this->s3Bucket
             . '/';
 
-        $this->imageFactory = new ImageFactory();
-        $this->fileRepository = new FileRepository();
+        $this->imageFactory = new PictureManager();
+        $this->fileRepository = new FileManager();
         $this->cacheManager = new CacheManager();
     }
 
@@ -69,7 +69,7 @@ class CachePurgeTest extends TestCase
     public function testSaveAndDeleteImage()
     {
         $image = $this->getImage();
-        $filename = 'tests/' . $this->fileRepository->saveImage($image, 'tests');
+        $filename = 'tests/' . $this->fileRepository->savePicture($image, 'tests');
 
         $path = $this->dataDir . $filename;
         $s3Url =  $this->s3Url . $filename;
@@ -98,7 +98,7 @@ class CachePurgeTest extends TestCase
     public function testNginxCachePurge()
     {
         $image = $this->getImage();
-        $filename = 'tests/' . $this->fileRepository->saveImage($image, 'tests');
+        $filename = 'tests/' . $this->fileRepository->savePicture($image, 'tests');
 
         $path = $this->dataDir . $filename;
         $s3Url =  $this->s3Url . $filename;

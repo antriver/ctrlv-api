@@ -2,7 +2,7 @@
 
 namespace CtrlV\Jobs;
 
-use CtrlV\Repositories\FileRepository;
+use CtrlV\Libraries\FileManager;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;
@@ -32,9 +32,9 @@ class RenameFileJob extends Job implements SelfHandling, ShouldQueue
     /**
      * Execute the job.
      *
-     * @param FileRepository $fileRepository
+     * @param FileManager $fileRepository
      */
-    public function handle(FileRepository $fileRepository)
+    public function handle(FileManager $fileRepository)
     {
         $this->logger->debug(
             "Renaming file {$this->oldRelativePath} to {$this->newRelativePath} attempt {$this->attempts()}"

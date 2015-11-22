@@ -3,7 +3,7 @@
 namespace CtrlV\Console\Commands\Images;
 
 use Illuminate\Console\Command;
-use CtrlV\Models\ImageModel;
+use CtrlV\Models\Image;
 
 class DeleteExpired extends Command
 {
@@ -28,7 +28,7 @@ class DeleteExpired extends Command
      */
     public function handle()
     {
-        $images = ImageModel::whereNotNull('expires_at')
+        $images = Image::whereNotNull('expires_at')
             ->where('expires_at', '<=', date('Y-m-d H:i:s'))->get();
 
         foreach ($images as $image) {
