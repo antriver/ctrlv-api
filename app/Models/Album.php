@@ -5,7 +5,21 @@ namespace CtrlV\Models;
 /**
  * CtrlV\Models\Album
  *
- * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Image[] $images
+ * @property integer $albumId
+ * @property integer $userId
+ * @property string $name
+ * @property boolean $privacy
+ * @property string $password
+ * @property \Carbon\Carbon $createdAt
+ * @property \Carbon\Carbon $updatedAt
+ * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\ImageModel[] $images
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album whereAlbumId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album whereUserId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album whereName($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album wherePrivacy($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album wherePassword($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album whereCreatedAt($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album whereUpdatedAt($value)
  */
 class Album extends Base\BaseModel
 {
@@ -16,7 +30,7 @@ class Album extends Base\BaseModel
     protected $primaryKey = 'id';
     protected $table = 'albums';
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     public function images()
     {

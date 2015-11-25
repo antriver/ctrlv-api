@@ -23,17 +23,30 @@ $router->get('uploader', ['uses' => 'UploaderController@getIndex']);
 $router->get('uploader/xdframe', ['uses' => 'UploaderController@getXdframe']);
 $router->get('uploader/blank', ['uses' => 'UploaderController@getBlank']);
 
-$router->resource('album', 'AlbumController', ['only' => ['store', 'show', 'update', 'destroy']]);
-
-$router->get('image/{image}/image', ['uses' => 'ImageController@view']);
-$router->get('image/{image}/thumbnail', ['uses' => 'ImageController@viewThumbnail']);
-$router->post('image/{image}/rotate', ['uses' => 'ImageController@rotate']);
-$router->post('image/{image}/crop', ['uses' => 'ImageController@crop']);
-$router->post('image/{image}/uncrop', ['uses' => 'ImageController@uncrop']);
-$router->get('image/{image}/annotation', ['uses' => 'ImageController@viewAnnotation']);
-$router->post('image/{image}/annotation', ['uses' => 'ImageController@storeAnnotation']);
-$router->delete('image/{image}/annotation', ['uses' => 'ImageController@destroyAnnotation']);
-$router->resource('image', 'ImageController', ['only' => ['store', 'show', 'update', 'destroy']]);
+//$router->resource('album', 'AlbumController', ['only' => ['store', 'show', 'update', 'destroy']]);
 
 
-$router->resource('user', 'UserController', ['only' => ['store', 'show', 'update']]);
+$router->post('images/{image}/annotation', ['uses' => 'AnnotationController@store']);
+$router->get('images/{image}/annotation', ['uses' => 'AnnotationController@show']);
+$router->delete('images/{image}/annotation', ['uses' => 'AnnotationController@destroy']);
+
+$router->post('images', ['uses' => 'ImagesController@store']);
+$router->get('images/{image}', ['uses' => 'ImagesController@show']);
+$router->put('images/{image}', ['uses' => 'ImagesController@update']);
+$router->delete('images/{image}', ['uses' => 'ImagesController@destroy']);
+
+$router->get('images/{image}/image', ['uses' => 'ImagesController@view']);
+$router->put('images/{image}/image', ['uses' => 'ImagesController@updateImage']);
+$router->get('images/{image}/thumbnail', ['uses' => 'ImagesController@viewThumbnail']);
+$router->post('images/{image}/crop', ['uses' => 'ImagesController@crop']);
+$router->delete('images/{image}/crop', ['uses' => 'ImagesController@uncrop']);
+
+$router->post('sessions', ['uses' => 'SessionsController@login']);
+$router->get('sessions/{session}', ['uses' => 'SessionsController@show']);
+
+$router->post('users', ['uses' => 'UsersController@store']);
+$router->get('users/{user}', ['uses' => 'UsersController@show']);
+$router->put('users/{user}', ['uses' => 'UsersController@update']);
+// $router->delete('users/{user}', ['uses' => 'UsersController@destroy']);
+
+$router->get('users/{user}/images', ['uses' => 'UsersController@showImages']);

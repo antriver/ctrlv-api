@@ -13,11 +13,17 @@ class ImageFilesFields extends Migration
     public function up()
     {
         Schema::table('images', function (Blueprint $table) {
-            $table->integer('fileId')->unsigned()->after('imageID');
-            $table->foreign('fileId')->references('image_files')->on('id')->onDelete('cascade')->onUpdate('cascade');
+            $table->integer('fileId')->unsigned()->nullable()->after('imageId');
+            $table->foreign('fileId')->references('fileId')->on('files')->onDelete('set null')->onUpdate('cascade');
 
-            $table->integer('thumbnailId')->unsigned()->after('fileId');
-            $table->foreign('thumbnailId')->references('image_files')->on('id')->onDelete('cascade')->onUpdate('cascade');
+            $table->integer('thumbnailFileId')->unsigned()->nullable()->after('fileId');
+            $table->foreign('thumbnailFileId')->references('fileId')->on('files')->onDelete('set null')->onUpdate('cascade');
+
+            $table->integer('annotationFileId')->unsigned()->nullable()->after('thumbnailFileId');
+            $table->foreign('annotationFileId')->references('fileId')->on('files')->onDelete('set null')->onUpdate('cascade');
+
+            $table->integer('uncroppedFileId')->unsigned()->nullable()->after('annotationFileId');
+            $table->foreign('uncroppedFileId')->references('fileId')->on('files')->onDelete('set null')->onUpdate('cascade');
         });
     }
 
@@ -29,11 +35,17 @@ class ImageFilesFields extends Migration
     public function down()
     {
         Schema::table('images', function (Blueprint $table) {
-            $table->dropForeign('fileId_foreign');
-            $table->dropForeign('thumbnailFileId_foreign');
-
+            $table->dropForeign('images_fileid_foreign');
             $table->dropColumn('fileId');
-            $table->dropColumn('thumbnailId');
+
+            $table->dropForeign('images_thumbnailfileid_foreign');
+            $table->dropColumn('thumbnailFileId');
+
+            $table->dropForeign('images_annotationfileid_foreign');
+            $table->dropColumn('annotationFileId');
+
+            $table->dropForeign('images_uncroppedfileid_foreign');
+            $table->dropColumn('uncroppedFileId');
         });
     }
 }

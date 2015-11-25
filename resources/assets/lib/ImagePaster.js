@@ -222,8 +222,8 @@ ImagePaster.prototype.upload = function(format, data) {
         },
         error: function(jqXHR, textStatus)
         {
-            // Turn this crappy error message into something useful
-            var message = textStatus;
+            // Turn this error message into something useful
+            var message;
             switch (textStatus) {
                 case 'timeout':
                     message = 'The image took too long to upload';
@@ -243,6 +243,9 @@ ImagePaster.prototype.upload = function(format, data) {
                     break;
                 case 'parsererror':
                     message = 'Error uploading: couldn\'t decode the response from the server';
+                    break;
+                default:
+                    message = textStatus;
                     break;
             }
 

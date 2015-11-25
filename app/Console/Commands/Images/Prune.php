@@ -20,7 +20,6 @@ class Prune extends Command
      */
     protected $description = 'Delete local files not modified in the last 7 days';
 
-
     /**
      * Execute the console command.
      *

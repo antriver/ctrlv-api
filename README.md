@@ -10,6 +10,8 @@ sudo -u www-data php artisan queue:listen --tries=3 --sleep=1 -vvv --timeout=600
 ```
 
 ## TODO
+* Update API example responses
+
 * Race conditions when generating/saving/optimizing and deleting image files?
 * OCR
 * Users

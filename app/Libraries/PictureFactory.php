@@ -8,10 +8,10 @@ use Intervention\Image\Image as Picture;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
- * Class PictureManager
+ * Class PictureFactory
  * Generates Picture (Intervention\Image\Image) objects from various sources.
  */
-class PictureManager
+class PictureFactory
 {
     /**
      * Create an image from a base64 encoded string.

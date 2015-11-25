@@ -54,6 +54,7 @@ class Handler extends ExceptionHandler
 
         $response = [
             'error' => true,
+            'success' => false,
             'message' => $e->getMessage(),
             'status' => $status,
             'errorType' => $type

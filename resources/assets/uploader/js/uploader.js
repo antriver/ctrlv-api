@@ -5,7 +5,7 @@ if (window.opener && window.opener.frames) {
      */
     var target = location.hash.substring(9);
     target = 'easyXDM_' + target + '_provider';
-    var host = window.opener.frames[target];
+    host = window.opener.frames[target];
     if (window.opener) {
         try {
             // test if we have access to the document
@@ -64,11 +64,8 @@ $(document).on('ctrlvuploadcomplete', function(e){
 
 $(document).on('ctrlvuploaderror', function(e){
     $('.upload-status').addClass('out');
-    $('#upload-error').removeClass('out');
-    $('#upload-error p').text(e.message);
+    $('#upload-error').removeClass('out').find('p').text(e.message);
 });
-
-
 
 $(document).on('keyup', function(e) {
     // Highlighting keys when pressing

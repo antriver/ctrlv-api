@@ -3,7 +3,7 @@ namespace PHPSTORM_META {
 
    /**
     * PhpStorm Meta file, to provide autocomplete information for PhpStorm
-    * Generated on 2015-11-20.
+    * Generated on 2015-11-23.
     *
     * @author Barry vd. Heuvel <barryvdh@gmail.com>
     * @see https://github.com/barryvdh/laravel-ide-helper
@@ -39,6 +39,9 @@ namespace PHPSTORM_META {
             'view.engine.resolver' instanceof \Illuminate\View\Engines\EngineResolver,
             'view.finder' instanceof \Illuminate\View\FileViewFinder,
             'view' instanceof \Illuminate\View\Factory,
+            'CacheManager' instanceof \CtrlV\Libraries\CacheManager,
+            'FileManager' instanceof \CtrlV\Libraries\FileManager,
+            'PictureFactory' instanceof \CtrlV\Libraries\PictureFactory,
             'image' instanceof \Intervention\Image\ImageManager,
             'command.app.name' instanceof \Illuminate\Foundation\Console\AppNameCommand,
             'command.clear-compiled' instanceof \Illuminate\Foundation\Console\ClearCompiledCommand,
@@ -113,6 +116,8 @@ namespace PHPSTORM_META {
             'command.queue.subscribe' instanceof \Illuminate\Queue\Console\SubscribeCommand,
             'queue.failer' instanceof \Illuminate\Queue\Failed\DatabaseFailedJobProvider,
             'IlluminateQueueClosure' instanceof \IlluminateQueueClosure,
+            'auth.password' instanceof \Illuminate\Auth\Passwords\PasswordBroker,
+            'auth.password.tokens' instanceof \Illuminate\Auth\Passwords\DatabaseTokenRepository,
             'translation.loader' instanceof \Illuminate\Translation\FileLoader,
             'translator' instanceof \Illuminate\Translation\Translator,
             'aws' instanceof \Aws\Sdk,
@@ -151,6 +156,9 @@ namespace PHPSTORM_META {
             'view.engine.resolver' instanceof \Illuminate\View\Engines\EngineResolver,
             'view.finder' instanceof \Illuminate\View\FileViewFinder,
             'view' instanceof \Illuminate\View\Factory,
+            'CacheManager' instanceof \CtrlV\Libraries\CacheManager,
+            'FileManager' instanceof \CtrlV\Libraries\FileManager,
+            'PictureFactory' instanceof \CtrlV\Libraries\PictureFactory,
             'image' instanceof \Intervention\Image\ImageManager,
             'command.app.name' instanceof \Illuminate\Foundation\Console\AppNameCommand,
             'command.clear-compiled' instanceof \Illuminate\Foundation\Console\ClearCompiledCommand,
@@ -225,6 +233,8 @@ namespace PHPSTORM_META {
             'command.queue.subscribe' instanceof \Illuminate\Queue\Console\SubscribeCommand,
             'queue.failer' instanceof \Illuminate\Queue\Failed\DatabaseFailedJobProvider,
             'IlluminateQueueClosure' instanceof \IlluminateQueueClosure,
+            'auth.password' instanceof \Illuminate\Auth\Passwords\PasswordBroker,
+            'auth.password.tokens' instanceof \Illuminate\Auth\Passwords\DatabaseTokenRepository,
             'translation.loader' instanceof \Illuminate\Translation\FileLoader,
             'translator' instanceof \Illuminate\Translation\Translator,
             'aws' instanceof \Aws\Sdk,
@@ -263,6 +273,9 @@ namespace PHPSTORM_META {
             'view.engine.resolver' instanceof \Illuminate\View\Engines\EngineResolver,
             'view.finder' instanceof \Illuminate\View\FileViewFinder,
             'view' instanceof \Illuminate\View\Factory,
+            'CacheManager' instanceof \CtrlV\Libraries\CacheManager,
+            'FileManager' instanceof \CtrlV\Libraries\FileManager,
+            'PictureFactory' instanceof \CtrlV\Libraries\PictureFactory,
             'image' instanceof \Intervention\Image\ImageManager,
             'command.app.name' instanceof \Illuminate\Foundation\Console\AppNameCommand,
             'command.clear-compiled' instanceof \Illuminate\Foundation\Console\ClearCompiledCommand,
@@ -337,6 +350,8 @@ namespace PHPSTORM_META {
             'command.queue.subscribe' instanceof \Illuminate\Queue\Console\SubscribeCommand,
             'queue.failer' instanceof \Illuminate\Queue\Failed\DatabaseFailedJobProvider,
             'IlluminateQueueClosure' instanceof \IlluminateQueueClosure,
+            'auth.password' instanceof \Illuminate\Auth\Passwords\PasswordBroker,
+            'auth.password.tokens' instanceof \Illuminate\Auth\Passwords\DatabaseTokenRepository,
             'translation.loader' instanceof \Illuminate\Translation\FileLoader,
             'translator' instanceof \Illuminate\Translation\Translator,
             'aws' instanceof \Aws\Sdk,
@@ -375,6 +390,9 @@ namespace PHPSTORM_META {
             'view.engine.resolver' instanceof \Illuminate\View\Engines\EngineResolver,
             'view.finder' instanceof \Illuminate\View\FileViewFinder,
             'view' instanceof \Illuminate\View\Factory,
+            'CacheManager' instanceof \CtrlV\Libraries\CacheManager,
+            'FileManager' instanceof \CtrlV\Libraries\FileManager,
+            'PictureFactory' instanceof \CtrlV\Libraries\PictureFactory,
             'image' instanceof \Intervention\Image\ImageManager,
             'command.app.name' instanceof \Illuminate\Foundation\Console\AppNameCommand,
             'command.clear-compiled' instanceof \Illuminate\Foundation\Console\ClearCompiledCommand,
@@ -449,6 +467,8 @@ namespace PHPSTORM_META {
             'command.queue.subscribe' instanceof \Illuminate\Queue\Console\SubscribeCommand,
             'queue.failer' instanceof \Illuminate\Queue\Failed\DatabaseFailedJobProvider,
             'IlluminateQueueClosure' instanceof \IlluminateQueueClosure,
+            'auth.password' instanceof \Illuminate\Auth\Passwords\PasswordBroker,
+            'auth.password.tokens' instanceof \Illuminate\Auth\Passwords\DatabaseTokenRepository,
             'translation.loader' instanceof \Illuminate\Translation\FileLoader,
             'translator' instanceof \Illuminate\Translation\Translator,
             'aws' instanceof \Aws\Sdk,

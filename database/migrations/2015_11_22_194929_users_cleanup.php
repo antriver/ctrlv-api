@@ -12,9 +12,15 @@ class UsersCleanup extends Migration
      */
     public function up()
     {
+        DB::statement("ALTER TABLE users CHANGE COLUMN `userID` `userId` INT(10) UNSIGNED NOT NULL");
+
         Schema::table('users', function (Blueprint $table) {
-           $table->renameColumn('`userID`', '`id`');
+            $table->dateTime('premiumUntil')->nullable()->default(null)->after('password');
         });
+
+        DB::statement("ALTER TABLE users CHANGE COLUMN `fbID` `facebookId` BIGINT NULL DEFAULT NULL");
+
+        DB::statement("ALTER TABLE users CHANGE COLUMN `signupdate` `createdAt` DATETIME NULL DEFAULT NULL AFTER `defaultPassword`");
     }
 
     /**
@@ -24,8 +30,5 @@ class UsersCleanup extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-           $table->renameColumn('`id`', '`userID`');
-        });
     }
 }

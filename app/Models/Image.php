@@ -14,57 +14,45 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 /**
  * CtrlV\Models\Image
  *
- * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Album[] $albums
- * @property integer $imageID
- * @property string $filename
- * @property \Carbon\Carbon $date
+ * @property integer $imageId
+ * @property integer $fileId
+ * @property integer $thumbnailFileId
+ * @property integer $annotationFileId
+ * @property integer $uncroppedFileId
  * @property string $via
- * @property string $IP
- * @property integer $userID
+ * @property string $ip
+ * @property integer $userId
  * @property string $key
- * @property string $uncroppedfilename
- * @property string $caption
- * @property integer $privacy
+ * @property string $title
+ * @property boolean $privacy
  * @property string $password
- * @property string $annotation
- * @property string $notes
- * @property boolean $thumb
- * @property integer $w
- * @property integer $h
- * @property boolean $ocr
- * @property boolean $ocrskip
- * @property string $ocrtext
- * @property boolean $ocrinprogress
- * @property boolean $tagged
  * @property integer $views
- * @property integer $filesize
- * @property string $batchID
- * @property \Carbon\Carbon $expires_at
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereImageID($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereFilename($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereDate($value)
+ * @property integer $batchID
+ * @property \Carbon\Carbon $expiresAt
+ * @property \Carbon\Carbon $createdAt
+ * @property \Carbon\Carbon $updatedAt
+ * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Album[] $albums
+ * @property-read \CtrlV\Models\ImageFile $imageFile
+ * @property-read \CtrlV\Models\ImageFile $thumbnailFile
+ * @property-read \CtrlV\Models\ImageFile $uncroppedFile
+ * @property-read \CtrlV\Models\ImageFile $annotationFile
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereImageId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereFileId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereThumbnailFileId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereAnnotationFileId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUncroppedFileId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereVia($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereIP($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUserID($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereIp($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereKey($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUncroppedfilename($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereCaption($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereTitle($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image wherePrivacy($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image wherePassword($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereAnnotation($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereNotes($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereThumb($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereW($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereH($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereOcr($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereOcrskip($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereOcrtext($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereOcrinprogress($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereTagged($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereViews($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereFilesize($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereBatchID($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereExpiresAt($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereCreatedAt($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUpdatedAt($value)
  */
 class Image extends Base\BaseModel
 {
@@ -77,19 +65,22 @@ class Image extends Base\BaseModel
         'privacy' => 'int',
         'tagged' => 'boolean',
         'thumb' => 'boolean',
-        'userID' => 'int',
+        'id' => 'int',
         'views' => 'int',
         'w' => 'int',
     ];
 
     protected $dates = [
-        'date',
-        'expires_at'
+        'expiresAt'
     ];
 
     protected $guarded = [];
 
     protected $hidden = [
+        'fileId',
+        'annotationFileId',
+        'thumbnailFileId',
+        'uncroppedFileId',
         'annotation',
         'filename',
         'IP',
@@ -109,12 +100,37 @@ class Image extends Base\BaseModel
 
     protected $table = 'images';
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     public function albums()
     {
         return $this->belongsToMany('CtrlV\Models\Album', 'image_albums', 'imageId', 'albumId');
     }
+
+    public function imageFile()
+    {
+        return $this->hasOne('CtrlV\Models\ImageFile', 'id', 'fileId');
+    }
+
+    public function thumbnailFile()
+    {
+        return $this->hasOne('CtrlV\Models\ImageFile', 'id', 'thumbnailFileId');
+    }
+
+    public function uncroppedFile()
+    {
+        return $this->hasOne('CtrlV\Models\ImageFile', 'id', 'uncroppedFileId');
+    }
+
+    public function annotationFile()
+    {
+        return $this->hasOne('CtrlV\Models\ImageFile', 'id', 'annotationFileId');
+    }
+
+    /*public function text()
+    {
+        return $this->hasOneThrough('CtrlV\Models\ImageText' )
+    }*/
 
     /**
      * Return the properties in an array.
@@ -128,6 +144,8 @@ class Image extends Base\BaseModel
         $array['height'] = $this->h;
         $array['width'] = $this->w;
         $array['urls'] = $this->getUrls();
+
+        $array['file'] = $this->imageFile;
 
         unset($array['h'], $array['w']);
         ksort($array);
@@ -299,9 +317,6 @@ class Image extends Base\BaseModel
             function (Image $image) {
 
                 $image->generateKey();
-
-                $date = new DateTime;
-                $image->date = $date->format('Y-m-d H:i:s');
 
             }
         );

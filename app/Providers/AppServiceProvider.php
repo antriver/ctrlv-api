@@ -3,6 +3,10 @@
 namespace CtrlV\Providers;
 
 use Config;
+use CtrlV\Libraries\CacheManager;
+use CtrlV\Libraries\FileManager;
+use CtrlV\Libraries\PasswordHasher;
+use CtrlV\Libraries\PictureFactory;
 use Event;
 use Request;
 use Illuminate\Support\ServiceProvider;
@@ -51,6 +55,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->singleton('CacheManager', function ($app) {
+            return new CacheManager();
+        });
+
+        $this->app->singleton('FileManager', function ($app) {
+            return new FileManager();
+        });
+
+        $this->app->singleton('PictureFactory', function ($app) {
+            return new PictureFactory();
+        });
+
+        $this->app->singleton('PasswordHasher', function ($app) {
+            return new PasswordHasher();
+        });
     }
 }

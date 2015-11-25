@@ -2,6 +2,7 @@
 
 namespace CtrlV\Http;
 
+use Config;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -13,10 +14,10 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         \Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,
-        \CtrlV\Http\Middleware\EncryptCookies::class,
-        \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-        \Illuminate\Session\Middleware\StartSession::class,
-        \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+        //\CtrlV\Http\Middleware\EncryptCookies::class,
+        //\Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+        //\Illuminate\Session\Middleware\StartSession::class,
+        //\Illuminate\View\Middleware\ShareErrorsFromSession::class,
         //\CtrlV\Http\Middleware\VerifyCsrfToken::class,
     ];
 

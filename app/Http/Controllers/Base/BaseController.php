@@ -14,6 +14,13 @@ abstract class BaseController extends Controller
     use DispatchesJobs;
     use ValidatesRequests;
 
+    protected $request;
+
+    public function __construct(Request $request)
+    {
+        $this->request = $request;
+    }
+
     /**
      * Validate the given request with the given rules.
      *

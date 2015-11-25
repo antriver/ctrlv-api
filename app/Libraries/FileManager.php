@@ -1,9 +1,5 @@
 <?php
 
-/**
- * FileManager saves/loads Pictures to/from the file system.
- */
-
 namespace CtrlV\Libraries;
 
 use AWS;
@@ -16,11 +12,14 @@ use CtrlV\Jobs\OptimizeFileJob;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Intervention\Image\Image as Picture;
 
+/**
+ * FileManager saves/loads Pictures to/from the file system.
+ */
 class FileManager
 {
     use DispatchesJobs;
 
-    // Subdirectories in the image dir
+    // Directories in the image dir
     const ANNOTATION = 'annotation';
     const IMAGE = 'img';
     const THUMB = 'thumb';
@@ -216,7 +215,7 @@ class FileManager
      *
      * @return string|bool
      */
-    public function copyFromRemote($relativePath, $returnContents = false)
+    private function copyFromRemote($relativePath, $returnContents = false)
     {
         $s3Client = $this->getS3Client();
 

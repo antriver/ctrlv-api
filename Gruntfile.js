@@ -82,9 +82,9 @@ module.exports = function(grunt) {
             'build-api-docs': {
                 command: [
                     './node_modules/apidoc/bin/apidoc -i ./app/Http/Controllers -o ./public/docs -t ./apidoc-template',
-                    'cd ./public/docs',
-                    'mv index.html index-original.html',
-                    'phantomjs compile.js'
+                    //'cd ./public/docs',
+                    //'mv index.html index-original.html',
+                    //'phantomjs compile.js'
                 ].join(' && ')
             }
         }

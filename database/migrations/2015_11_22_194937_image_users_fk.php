@@ -12,8 +12,10 @@ class ImageUsersFk extends Migration
      */
     public function up()
     {
+        DB::statement('UPDATE images left join users on users.userId = images.userId set images.userId = null where users.userId IS NULL');
+
         Schema::table('images', function (Blueprint $table) {
-            $table->foreign('userId')->references('users')->on('id')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('userId')->references('userId')->on('users')->onDelete('SET NULL')->onUpdate('cascade');
         });
     }
 
@@ -25,7 +27,7 @@ class ImageUsersFk extends Migration
     public function down()
     {
         Schema::table('images', function (Blueprint $table) {
-            $table->dropForeign('userId_foreign');
+            $table->dropForeign('images_userid_foreign');
         });
     }
 }

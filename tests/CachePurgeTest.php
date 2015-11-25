@@ -3,7 +3,7 @@
 namespace CtrlVTests;
 
 use Config;
-use CtrlV\Libraries\PictureManager;
+use CtrlV\Libraries\PictureFactory;
 use CtrlV\Libraries\FileManager;
 use CtrlV\Libraries\CacheManager;
 
@@ -19,7 +19,7 @@ class CachePurgeTest extends TestCase
     private $s3Url;
 
     /**
-     * @var PictureManager
+     * @var PictureFactory
      */
     private $imageFactory;
 
@@ -50,7 +50,7 @@ class CachePurgeTest extends TestCase
             . $this->s3Bucket
             . '/';
 
-        $this->imageFactory = new PictureManager();
+        $this->imageFactory = new PictureFactory();
         $this->fileRepository = new FileManager();
         $this->cacheManager = new CacheManager();
     }

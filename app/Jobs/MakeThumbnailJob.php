@@ -43,7 +43,8 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
         // Get full size image
         $picture = $fileRepository->getPicture('img/' . $this->image->filename);
 
-        $picture->fit(200);
+        //$picture->fit(200);
+        $picture->fit(400); // Retina time!
 
         if ($fileRepository->savePicture($picture, 'thumb', $this->image->filename)) {
             $this->image->thumb = true;

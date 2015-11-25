@@ -24,7 +24,7 @@ Vagrant.configure("2") do |config|
         ctrlv.vm.provider "virtualbox" do |vbox|
             vbox.name = "ctrlv.vagrant"
             vbox.memory = 512
-            vbox.cpus = 1
+            vbox.cpus = 4
         end
 
     end
