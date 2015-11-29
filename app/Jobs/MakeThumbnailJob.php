@@ -3,52 +3,65 @@
 namespace CtrlV\Jobs;
 
 use CtrlV\Models\Image;
+use CtrlV\Models\ImageFile;
 use CtrlV\Libraries\FileManager;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Intervention\Image\Constraint;
 
 class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
 {
     use InteractsWithQueue;
     use SerializesModels;
 
-    private $image;
+    private $imageFile;
 
     /**
      * Create a new job instance.
      *
-     * @param Image $image
+     * @param ImageFile $imageFile
      */
-    public function __construct(Image $image)
+    public function __construct(ImageFile $imageFile)
     {
-        $this->image = $image;
+        $this->imageFile = $imageFile;
         parent::__construct();
     }
 
     /**
      * Execute the job.
      *
-     * @param FileManager $fileRepository
+     * @param FileManager $fileManager
      *
      * @throws \Exception
      */
-    public function handle(FileManager $fileRepository)
+    public function handle(FileManager $fileManager)
     {
+        $this->logger = $this->getJobLogger();
+
         $this->logger->debug(
-            "Generating thumbnail for image img/{$this->image->filename} attempt {$this->attempts()}"
+            "Generating thumbnail for image {$this->imageFile->getId()} {$this->imageFile->getPath()}"
+            ." attempt {$this->attempts()}"
         );
 
         // Get full size image
-        $picture = $fileRepository->getPicture('img/' . $this->image->filename);
+        $picture = $fileManager->getPictureForImageFile($this->imageFile);
+        $filename = $this->imageFile->getFilename();
 
-        //$picture->fit(200);
-        $picture->fit(400); // Retina time!
+        // Generate 400x400 thumbnail
+        $picture->fit(
+            400,
+            400,
+            function (Constraint $constraint) {
+                $constraint->upsize();
+            }
+        );
 
-        if ($fileRepository->savePicture($picture, 'thumb', $this->image->filename)) {
-            $this->image->thumb = true;
-            $this->image->save();
+        if ($thumbnailImageFile = $fileManager->savePicture($picture, 'thumb', $filename, $this->imageFile)) {
+            Image::where('imageFileID', $this->imageFile->getId())
+                ->update(['thumbnailImageFileId' => $thumbnailImageFile->getId()]);
         }
+
     }
 }

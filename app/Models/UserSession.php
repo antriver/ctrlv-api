@@ -2,6 +2,8 @@
 
 namespace CtrlV\Models;
 
+use CtrlV\Libraries\PasswordHasher;
+
 /**
  * CtrlV\Models\UserSession
  *
@@ -19,25 +21,52 @@ namespace CtrlV\Models;
  */
 class UserSession extends Base\BaseModel
 {
-    public $incrementing = false;
-
-    protected $primaryKey = 'sessionKey';
-
-    protected $guarded = [];
-
-    protected $fillable = [
-        'ip',
-        'userId'
+    /**
+     * The fields that are not output in JSON.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'sessionKey'
     ];
 
+    /**
+     * The primary key is a string, not auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'sessionKey';
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function user()
     {
-        return $this->belongsTo('\CtrlV\Models\User', 'userId', 'id');
+        return $this->belongsTo('\CtrlV\Models\User', 'userId', 'userId');
     }
 
-    public function generateSessionKey()
+    /**
+     * Generate a key to be stored in a cookie so users who are not logged in
+     * can edit / delete the image.
+     *
+     * @param PasswordHasher $passwordHasher
+     *
+     * @return string
+     */
+    public function generateKey(PasswordHasher $passwordHasher)
     {
-        return sha1(uniqid());
+        $key = $passwordHasher->generateKey();
+
+        $this->sessionKey = $key; //$passwordHasher->generateHash($key);
+
+        return $key;
     }
 
     /**
@@ -48,17 +77,11 @@ class UserSession extends Base\BaseModel
     public function toArray()
     {
         $array = parent::toArray();
+
         $array['user'] = $this->user;
+
         ksort($array);
+
         return $array;
-    }
-
-    public static function boot()
-    {
-        UserSession::creating(function (UserSession $session) {
-            $session->sessionKey = $session->generateSessionKey();
-        });
-
-        parent::boot();
     }
 }

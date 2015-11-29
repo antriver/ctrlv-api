@@ -5,6 +5,7 @@ namespace CtrlV\Jobs;
 use Illuminate\Bus\Queueable;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\RotatingFileHandler;
+use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 
 abstract class Job
@@ -26,24 +27,33 @@ abstract class Job
 
     protected function __construct()
     {
-        $this->logger = $this->getJobLogger();
+
     }
 
     /**
      * @return Logger
      */
-    private function getJobLogger()
+    protected function getJobLogger()
     {
         $jobLogger = new Logger('Jobs');
-        $fileHandler = new RotatingFileHandler(storage_path() . '/logs/jobs.log');
+
         $lineFormatter = new LineFormatter(
             "[%datetime%] %message% %context% %extra%\n",
             null,
             true,
             true
         );
+
+        $streamHandler = new StreamHandler("php://output");
+        $streamHandler->setFormatter($lineFormatter);
+        $jobLogger->pushHandler($streamHandler);
+
+        $fileHandler = new RotatingFileHandler(storage_path().'/logs/jobs.log');
         $fileHandler->setFormatter($lineFormatter);
         $jobLogger->pushHandler($fileHandler);
+
+        $jobLogger->debug(static::class);
+
         return $jobLogger;
     }
 }

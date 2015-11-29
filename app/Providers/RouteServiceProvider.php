@@ -9,7 +9,6 @@ class RouteServiceProvider extends ServiceProvider
 {
     /**
      * This namespace is applied to the controller routes in your routes file.
-     *
      * In addition, it is set as the URL generator's root namespace.
      *
      * @var string
@@ -51,7 +50,8 @@ class RouteServiceProvider extends ServiceProvider
         $router->group(
             ['namespace' => $this->namespace],
             function ($router) {
-                require dirname(__DIR__) . '/Http/routes.php';
+                // $router is used in the required file though :(
+                require dirname(__DIR__).'/Http/routes.php';
             }
         );
     }

@@ -1,9 +1,14 @@
 var ImagePaster = function(url) {
-
+    this.debug = true;
     this.url = url;
     this.pasteCatcher = null;
     this.init();
+};
 
+ImagePaster.prototype.log = function(data, extra) {
+    if (this.debug) {
+        console.log(data, extra);
+    }
 };
 
 ImagePaster.prototype.init = function() {
@@ -22,7 +27,6 @@ ImagePaster.prototype.init = function() {
     self.pasteCatcher.id = 'paste-catcher';
     document.body.appendChild(self.pasteCatcher);
     self.pasteCatcher.focus();
-
 
     // Listen for the 'paste' event on the body
     //if (browserName == 'IE') {
@@ -54,6 +58,8 @@ ImagePaster.prototype.onPaste = function(event) {
     var done = false;
     var clipboardData;
 
+    self.log('onPaste', JSON.stringify(event));
+
     if (event.clipboardData) {
         // Chrome
         clipboardData = event.clipboardData;
@@ -70,8 +76,7 @@ ImagePaster.prototype.onPaste = function(event) {
         var fileList = clipboardData.files;
         if (fileList.length > 0) {
             for (var i = 0; i < fileList.length; i++) {
-                var blob = fileList[i];
-                self.uploadBlob(blob);
+                self.uploadBlob(fileList[i]);
                 done = true;
             }
         }
@@ -80,6 +85,7 @@ ImagePaster.prototype.onPaste = function(event) {
     // Check if there is something in the paste event itself
     if (clipboardData && clipboardData.items) {
 
+        var text;
         // If there was some text on the clipboard,
         // it might be a URL. Try and paste that...
         if ((text = clipboardData.getData("text/plain"))) {
@@ -89,26 +95,26 @@ ImagePaster.prototype.onPaste = function(event) {
         }
 
         // Loop through all the clipboardData
-        for (var i = 0; i < clipboardData.items.length; i++) {
-
-            //If this clipboard item claims to be an image, upload it
-            if (clipboardData.items[i].type.indexOf('image') !== -1) {
-                var blob = clipboardData.items[i].getAsFile();
-                self.uploadBlob(blob);
+        for (var x = 0; x < clipboardData.items.length; x++) {
+            // If this clipboard item claims to be an image, upload it
+            if (clipboardData.items[x].type.indexOf('image') !== -1) {
+                self.uploadBlob(clipboardData.items[x].getAsFile());
                 done = true;
             }
-
         }
     }
 
-    // If there was nothing found in the clipboard data,
+    // If there was nothing found in the clipboard data
     // fall back to checking if there's anything in the editable element
     if (done) {
         self.clearPasteCatcher();
     } else {
-        setTimeout(function() {
-            self.checkPasteCatcher();
-        }, 1);
+        setTimeout(
+            function() {
+                self.checkPasteCatcher();
+            },
+            10
+        );
     }
 };
 
@@ -122,19 +128,15 @@ ImagePaster.prototype.checkPasteCatcher = function() {
     var child = this.pasteCatcher.childNodes[0];
 
     if (child) {
-        if (child.tagName === 'IMG')
+        if (child.tagName == 'IMG')
         {
             if (child.src.indexOf('webkit-fake-url://') != -1) {
                 this.onFail('Sorry, Safari does not currently support pasting images.');
                 return false;
             }
-
             this.uploadImage(child.src);
-
         } else if (child.tagName === 'A') {
-
             this.uploadText(child.href);
-
         } else {
             this.uploadText(text);
         }
@@ -145,15 +147,18 @@ ImagePaster.prototype.checkPasteCatcher = function() {
 
 ImagePaster.prototype.clearPasteCatcher = function() {
     var self = this;
-    setTimeout(function() {
-        self.pasteCatcher.innerHTML = '';
-    }, 1);
+    setTimeout(
+        function() {
+            self.pasteCatcher.innerHTML = '';
+        },
+        1
+    );
 };
 
 ImagePaster.prototype.uploadBlob = function(blob) {
     if (blob) {
         var self = this;
-        reader = new FileReader();
+        var reader = new FileReader();
         reader.onload = function(evt) {
             self.uploadImage(evt.target.result);
         };
@@ -218,7 +223,7 @@ ImagePaster.prototype.upload = function(format, data) {
         type: 'POST',
         data:{
             format: format,
-            base64: data,
+            base64: data
         },
         error: function(jqXHR, textStatus)
         {
@@ -252,7 +257,6 @@ ImagePaster.prototype.upload = function(format, data) {
             self.onFail(message);
         },
         success: function(res) {
-
             if (res.image) {
                 $(document).trigger({
                     type: 'ctrlvuploadcomplete',
@@ -261,8 +265,7 @@ ImagePaster.prototype.upload = function(format, data) {
             } else {
                 self.onFail(res.message);
             }
-
-        },
+        }
     });
 };
 

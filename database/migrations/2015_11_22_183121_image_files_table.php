@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class FilesTable extends Migration
+class ImageFilesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,10 +12,13 @@ class FilesTable extends Migration
      */
     public function up()
     {
-        Schema::create('files', function (Blueprint $table) {
+        Schema::create('image_files', function (Blueprint $table) {
             $table->engine = 'InnoDB';
 
-            $table->increments('fileId');
+            $table->increments('imageFileId');
+
+            $table->integer('originalImageFileId')->unsigned()->nullable();
+            $table->foreign('originalImageFileId')->references('imageFileId')->on('image_files')->onDelete('set null')->onUpdate('cascade');
 
             $table->enum('directory', ['img', 'thumb', 'annotation', 'uncropped']);
             $table->string('filename', 100);
@@ -24,7 +27,8 @@ class FilesTable extends Migration
 
             $table->integer('width', false, true)->nullable()->default(null);
             $table->integer('height', false, true)->nullable()->default(null);
-            $table->integer('size', false, true)->nullable()->default(null);
+            $table->bigInteger('size', false, true)->nullable()->default(null);
+            $table->bigInteger('optimizedSize', false, true)->nullable()->default(null);
 
             $table->dateTime('createdAt')->nullable()->default(null);
             $table->dateTime('updatedAt')->nullable()->default(null);
@@ -40,6 +44,6 @@ class FilesTable extends Migration
      */
     public function down()
     {
-        Schema::drop('files');
+        Schema::drop('image_files');
     }
 }

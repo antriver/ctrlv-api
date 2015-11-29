@@ -2,53 +2,142 @@
 
 namespace CtrlV\Http\Controllers\Base;
 
-use Auth;
-use Illuminate\Auth\Guard;
-use Illuminate\Http\JsonResponse;
-use Input;
-use Response;
+use App;
+use CtrlV\Models\Album;
 use CtrlV\Models\Image;
 use CtrlV\Models\User;
 use CtrlV\Models\UserSession;
+use Illuminate\Auth\Guard;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+/**
+ * @apiDefine GenericSuccessResponse
+ * @apiSuccessExample {json} Success Response
+ *     {
+ *       "success": true
+ *     }
+ */
+
+/**
+ * @apiDefine ImageSuccessResponse
+ * @apiSuccessExample {json} Success Response
+ *     {
+ *       "success": true,
+ *       "image": {
+ *         // See Get Image Info
+ *       }
+ *     }
+ */
+
+/**
+ * @apiDefine PaginatedAlbumResponse
+ * @apiSuccessExample Success Response
+ *     {
+ *       "total": 2,
+ *       "perPage": 20,
+ *       "currentPage": 1,
+ *       "lastPage": 1,
+ *       "nextPageUrl": null,
+ *       "prevPageUrl": null,
+ *       "from": 1,
+ *       "to": 2,
+ *       "albums": [
+ *         {
+ *           "albumId": 1,
+ *           "createdAt": "2015-11-28T19:49:12+00:00",
+ *           "privacy": 0,
+ *           "title": "My Pics",
+ *           "updatedAt": "2015-11-28T19:49:12+00:00",
+ *           "url": "http://ctrlv.in/album/1",
+ *           "userId": 1
+ *         },
+ *         {
+ *           "albumId": 2,
+ *           "createdAt": "2015-11-28T19:49:17+00:00",
+ *           "privacy": 0,
+ *           "title": "Screenshots",
+ *           "updatedAt": "2015-11-28T19:49:17+00:00",
+ *           "url": "http://ctrlv.in/album/2",
+ *           "userId": 1
+ *         }
+ *       ]
+ *     }
+ */
+
+/**
+ * @apiDefine PaginatedImageResponse
+ * @apiSuccessExample Success Response
+ *     {
+ *       "total": 60,
+ *       "perPage": 20,
+ *       "currentPage": 1,
+ *       "lastPage": 3,
+ *       "nextPageUrl": "http://api.ctrlv.in/users/anthony/images/?page=2",
+ *       "prevPageUrl": null,
+ *       "from": 1,
+ *       "to": 20,
+ *       "images": [
+ *         {
+ *           // See Get Image Info
+ *         },
+ *         {
+ *           // See Get Image Info
+ *         },
+ *         // ...
+ *       ]
+ *     }
+ */
+
+/**
+ * @apiDefine RequiresAuthentication
+ * @apiParam {string} sessionKey This endpoint requires authentication so a session key must be provided.
+ */
+
+/**
+ * @apiDefine RequiresViewableImage
+ * @apiParam {string} [sessionKey] Session key for the user that owns the image.
+ *     **Either `sessionKey` or `password` is required if the image is password protected.**
+ * @apiParam {string} [password] Password to view the image.
+ *     **Either `sessionKey` or `password` is required if the image is password protected.**
+ */
+
+/**
+ * @apiDefine RequiresEditableImage
+ * @apiParam {string} sessionKey Session key for the user that owns the image.
+ *     **Either `sessionKey` or `imageKey` is required.**
+ * @apiParam {string} imageKey Editing key for the image (obtained when the image is created).
+ *     **Either `sessionKey` or `imageKey` is required.**
+ */
 abstract class ApiController extends BaseController
 {
+    protected $resultsPerPage = 20;
+
     public function __construct(Request $request, Guard $auth)
     {
         // TODO: Add API keys and check here
 
         if ($sessionKey = $request->get('sessionKey')) {
-            if ($session = UserSession::findOrFail($sessionKey)) {
-                if ($user = User::findOrFail($session->userId)) {
-                    $auth->setUser($user);
-                    // Note: setUser() not login() so the user is only logged in for this request
-                }
+            /** @var UserSession $session */
+            $session = UserSession::find($sessionKey);
+
+            if (!$session) {
+                throw new NotFoundHttpException("The given sessionKey is invalid.");
             }
+
+            if (!$session->user) {
+                throw new NotFoundHttpException("The user for that session could not be found.");
+            }
+
+            // Login the user just for this request.
+            $auth->setUser($session->user);
         }
 
-        parent::__construct($request);
-    }
-
-    /**
-     * Create a JSON error response
-     *
-     * @param string $message
-     * @param int $status
-     *
-     * @return Response
-     */
-    protected function error($message, $status = 400)
-    {
-        return new JsonResponse(
-            [
-                'error' => true,
-                'message' => $message,
-                'status' => $status
-            ],
-            $status
-        );
+        parent::__construct($request, $auth);
     }
 
     /**
@@ -56,40 +145,130 @@ abstract class ApiController extends BaseController
      *
      * @return Response
      */
-    protected function successResponse($data)
+    protected function response($data)
     {
         return Response::json($data);
     }
 
     /**
-     * Ensure that the given Image is viewable by the current visitor
+     * Does the current logged in user have the given userId?
      *
-     * @param Image $image
+     * @param int $userId
      *
-     * @throws HttpException
-     * @return boolean
+     * @return bool
      */
-    protected function requireViewableImage(Image $image)
+    protected function isCurrentUser($userId)
     {
-        if (!$image->isViewable($this->request->input('password'))) {
-            throw new HttpException(403, "You don't have permission to view that image.");
+        if (empty($userId)) {
+            return false;
         }
-        return true;
+
+        if (!$this->user) {
+            return false;
+        }
+
+        return $this->user->userId == $userId;
+    }
+
+    /**
+     * Ensure that the given Image is viewable by the current visitor.
+     * If $user is given then the user must be authenticated as that user.
+     *
+     * @param int|null $userId
+     *
+     * @return User
+     */
+    protected function requireAuthentication($userId = null)
+    {
+        $this->validate(
+            $this->request,
+            [
+                'sessionKey' => 'required|string'
+            ]
+        );
+
+        if (!$this->user) {
+            throw new HttpException(401, "You need to provide a valid sessionKey to use this endpoint.");
+        }
+
+        if ($userId) {
+            if ($this->user->userId != $userId) {
+                throw new HttpException(403, "You're not authorized to do that.");
+            }
+        }
+
+        return $this->user;
+    }
+
+    /**
+     * Ensure that the given Image/Album is viewable by the current visitor.
+     *
+     * @param Album|Image $model
+     *
+     * @internal param Request $request
+     * @internal param Guard $guard
+     * @return bool
+     */
+    protected function requireViewableModel($model)
+    {
+        if (!$model->password) {
+            return true;
+        }
+
+        if ($this->user && $model->userId) {
+            if ($this->user->userId == $model->userId) {
+                return true;
+            }
+        }
+
+        if ($this->request->has('password')) {
+            $passwordHasher = \App::make('PasswordHasher');
+            if ($passwordHasher->verify($this->request->input('password'), $model, 'password')) {
+                return true;
+            }
+        }
+
+        throw new HttpException(403, "You don't have permission to view that.");
     }
 
     /**
      * Ensure that the given Image is editable by the current visitor
      *
      * @param Image $image
+     * @param bool $checkImageKey
      *
-     * @throws HttpException
-     * @return boolean
+     * @return bool
      */
-    protected function requireEditableImage(Image $image)
+    protected function requireEditableImage(Image $image, $checkImageKey = true)
     {
-        if (!$image->isEditable($this->request->input('imageKey'))) {
-            throw new HttpException(403, "You don't have permission to modify that image.");
+        if ($this->user && $image->userId) {
+            if ($this->user->userId == $image->userId) {
+                return true;
+            }
         }
-        return true;
+
+        if ($checkImageKey && $this->request->has('imageKey')) {
+            $passwordHasher = \App::make('PasswordHasher');
+            if ($passwordHasher->verify($this->request->input('imageKey'), $image, 'key', 'plain')) {
+                return true;
+            }
+        }
+
+        throw new HttpException(403, "You don't have permission to modify that image.");
+    }
+
+    protected function paginatorToArray(LengthAwarePaginator $paginator, $dataKey = 'items')
+    {
+        return [
+            'total' => $paginator->total(),
+            'perPage' => $paginator->perPage(),
+            'currentPage' => $paginator->currentPage(),
+            'lastPage' => $paginator->lastPage(),
+            'nextPageUrl' => $paginator->nextPageUrl(),
+            'prevPageUrl' => $paginator->previousPageUrl(),
+            'from' => $paginator->firstItem(),
+            'to' => $paginator->lastItem(),
+            $dataKey => $paginator->items(),
+        ];
     }
 }

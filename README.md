@@ -1,30 +1,39 @@
 # CtrlV API
 
+## What's New
+* An image being anonymous is now a separate setting from it being password protected. (i.e. You can set a password on an image and still show your name on it.) Any existing images with a password have been automatically set to anonymous as this was the previous behaviour.
+
 ## Terminology
 *Picture: Intervention\Image\Image object.
 *Image: Image metadata stored in the database.
 
-## Running The Queue
-```bash
-sudo -u www-data php artisan queue:listen --tries=3 --sleep=1 -vvv --timeout=600
-```
+## FIXME
+* Race conditions when generating/saving/optimizing and deleting image files?
 
 ## TODO
-* Update API example responses
-
-* Race conditions when generating/saving/optimizing and deleting image files?
+* Set albumId on upload
+* PUT /albums/1/images/2 order=123 to reorder album images
+* Album privacy
+* Image vanity URLs / non-sequential IDs
+* Lock annotations. Change "uncropped" to "original". Replace uncrop/unannotate with revert to original. Allow recropping.
+* Batch requests for deleting images / adding to albums / removing from albums
 * OCR
-* Users
-* Albums
 * API Keys
+* Start again button on uploader should delete uploaded image (and/or we should have expiresAt on those images)
 
+## Commands
 
-## Generate API Doc
+### Running The Queue
+```bash
+sudo -u www-data php artisan queue:listen --tries=3 --sleep=0 -vvv --timeout=600
+```
+
+### Generate API Doc
 ```bash
 grunt build-api-docs
 ```
 
-## Supervisor config
+### Supervisor config
 
 /etc/supervisor/conf.d/ctrlv-api-worker.conf
 ```
@@ -43,3 +52,20 @@ stdout_logfile=/var/log/ctrlv-api-worker.log
 ```
 sudo supervisorctl start ctrlv-api-worker:*
 ```
+
+
+## Tesseract Setup
+```
+wget http://www.leptonica.com/source/leptonica-1.72.tar.gz
+tar xvf leptonica-1.72.tar.gz
+cd leptonica-1.72
+./configure
+make
+make install
+cd ..
+wget https://github.com/tesseract-ocr/tesseract/archive/3.04.00.tar.gz
+tar -xvf 3.04.00.tar.gz
+cd tesseract-3.04.00/
+./configure
+make
+make install

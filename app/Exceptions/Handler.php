@@ -20,7 +20,6 @@ class Handler extends ExceptionHandler
 
     /**
      * Report or log an exception.
-     *
      * This is a great spot to send exceptions to Sentry, Bugsnag, etc.
      *
      * @param \Exception $e
@@ -54,10 +53,10 @@ class Handler extends ExceptionHandler
 
         $response = [
             'error' => true,
-            'success' => false,
+            'errorType' => $type,
             'message' => $e->getMessage(),
             'status' => $status,
-            'errorType' => $type
+            'success' => false
         ];
 
         return Response::json($response, $status);

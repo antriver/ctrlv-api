@@ -4,52 +4,51 @@ namespace CtrlV\Models;
 
 use Auth;
 use Config;
-use DateTime;
-use Exception;
 use CtrlV\Jobs\MakeThumbnailJob;
-use CtrlV\Libraries\FileManager;
-use Intervention\Image\Image as Picture;
+use CtrlV\Libraries\PasswordHasher;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
 /**
  * CtrlV\Models\Image
  *
  * @property integer $imageId
- * @property integer $fileId
- * @property integer $thumbnailFileId
- * @property integer $annotationFileId
- * @property integer $uncroppedFileId
+ * @property integer $imageFileId
+ * @property integer $thumbnailImageFileId
+ * @property integer $annotationImageFileId
+ * @property integer $uncroppedImageFileId
+ * @property integer $albumId
  * @property string $via
  * @property string $ip
  * @property integer $userId
  * @property string $key
  * @property string $title
- * @property boolean $privacy
+ * @property integer $anonymous
  * @property string $password
  * @property integer $views
- * @property integer $batchID
+ * @property integer $batchId
  * @property \Carbon\Carbon $expiresAt
  * @property \Carbon\Carbon $createdAt
  * @property \Carbon\Carbon $updatedAt
- * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Album[] $albums
  * @property-read \CtrlV\Models\ImageFile $imageFile
- * @property-read \CtrlV\Models\ImageFile $thumbnailFile
- * @property-read \CtrlV\Models\ImageFile $uncroppedFile
- * @property-read \CtrlV\Models\ImageFile $annotationFile
+ * @property-read \CtrlV\Models\ImageFile $thumbnailImageFile
+ * @property-read \CtrlV\Models\ImageFile $annotationImageFile
+ * @property-read \CtrlV\Models\ImageFile $uncroppedImageFile
+ * @property-read \CtrlV\Models\Album $album
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereImageId($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereFileId($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereThumbnailFileId($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereAnnotationFileId($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUncroppedFileId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereImageFileId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereThumbnailImageFileId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereAnnotationImageFileId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUncroppedImageFileId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereAlbumId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereVia($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereIp($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereKey($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereTitle($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image wherePrivacy($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereAnonymous($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image wherePassword($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereViews($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereBatchID($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereBatchId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereExpiresAt($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereCreatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUpdatedAt($value)
@@ -58,79 +57,206 @@ class Image extends Base\BaseModel
 {
     use DispatchesJobs;
 
+    /**
+     * The database fields that should be casted to native types.
+     *
+     * @var array
+     */
     protected $casts = [
-        'filesize' => 'int',
-        'h' => 'int',
-        'imageID' => 'int',
-        'privacy' => 'int',
-        'tagged' => 'boolean',
-        'thumb' => 'boolean',
-        'id' => 'int',
+        'albumId' => 'int',
+        'annotationImageFileId' => 'int',
+        'anonymous' => 'bool',
+        'imageFileId' => 'int',
+        'imageId' => 'int',
+        'thumbnailImageFileId' => 'int',
+        'uncroppedImageFileId' => 'int',
+        'userId' => 'int',
         'views' => 'int',
-        'w' => 'int',
     ];
 
+    /**
+     * The database fields that should be casted to DateTime/Carbon objects.
+     *
+     * @var array
+     */
     protected $dates = [
         'expiresAt'
     ];
 
-    protected $guarded = [];
-
+    /**
+     * The fields that are not output in JSON.
+     *
+     * @var array
+     */
     protected $hidden = [
-        'fileId',
-        'annotationFileId',
-        'thumbnailFileId',
-        'uncroppedFileId',
-        'annotation',
-        'filename',
-        'IP',
+        'annotationImageFile',
+        'annotationImageFileId',
+        'anonymous',
+        'imageFile',
+        'imageFileId',
+        'ip',
         'key',
-        'notes',
-        'ocr',
-        'ocrinprogress',
-        'ocrskip',
         'password',
-        'tagged',
-        'thumb',
-        'uncroppedfilename',
-        'via',
+        'pivot',
+        'thumbnailImageFile',
+        'thumbnailImageFileId',
+        'uncroppedImageFile',
+        'uncroppedImageFileId',
+        'via'
     ];
 
-    protected $primaryKey = 'id';
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    protected $primaryKey = 'imageId';
 
-    protected $table = 'images';
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'view_images';
 
-    public $timestamps = true;
-
-    public function albums()
-    {
-        return $this->belongsToMany('CtrlV\Models\Album', 'image_albums', 'imageId', 'albumId');
-    }
-
+    /**
+     * imageFileId relation.
+     * Use getImageFile() method instead because it's more efficient.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function imageFile()
     {
-        return $this->hasOne('CtrlV\Models\ImageFile', 'id', 'fileId');
+        return $this->belongsTo('CtrlV\Models\ImageFile', 'imageFileId', 'imageFileId');
     }
 
-    public function thumbnailFile()
+    /**
+     * @return ImageFile|null
+     */
+    public function getImageFile()
     {
-        return $this->hasOne('CtrlV\Models\ImageFile', 'id', 'thumbnailFileId');
+        return is_null($this->imageFileId) ? null : $this->imageFile;
     }
 
-    public function uncroppedFile()
+    /**
+     * @param ImageFile $imageFile
+     */
+    public function setImageFile(ImageFile $imageFile)
     {
-        return $this->hasOne('CtrlV\Models\ImageFile', 'id', 'uncroppedFileId');
+        $this->imageFileId = $imageFile->getId();
     }
 
-    public function annotationFile()
+    /**
+     * thumbnailImageFileId relation.
+     * Use getThumbnailImageFile() method instead because it's more efficient.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function thumbnailImageFile()
     {
-        return $this->hasOne('CtrlV\Models\ImageFile', 'id', 'annotationFileId');
+        return $this->belongsTo('CtrlV\Models\ImageFile', 'thumbnailImageFileId', 'imageFileId');
     }
 
-    /*public function text()
+    /**
+     * @return ImageFile|null
+     */
+    public function getThumbnailImageFile()
     {
-        return $this->hasOneThrough('CtrlV\Models\ImageText' )
-    }*/
+        return is_null($this->thumbnailImageFileId) ? null : $this->thumbnailImageFile;
+    }
+
+    /**
+     * @param ImageFile|null $imageFile
+     */
+    public function setThumbnailImageFile(ImageFile $imageFile = null)
+    {
+        if ($imageFile) {
+            $this->thumbnailImageFileId = $imageFile->getId();
+        } else {
+            $this->thumbnailImageFileId = null;
+        }
+    }
+
+    /**
+     * annotationImageFileId.
+     * Use getAnnotationImageFile() method instead because it's more efficient.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function annotationImageFile()
+    {
+        return $this->belongsTo('CtrlV\Models\ImageFile', 'annotationImageFileId', 'imageFileId');
+    }
+
+    /**
+     * @return ImageFile|null
+     */
+    public function getAnnotationImageFile()
+    {
+        return is_null($this->annotationImageFileId) ? null : $this->annotationImageFile;
+    }
+
+    /**
+     * @param ImageFile|null $imageFile
+     */
+    public function setAnnotationImageFile(ImageFile $imageFile = null)
+    {
+        if ($imageFile) {
+            $this->annotationImageFileId = $imageFile->getId();
+        } else {
+            $this->annotationImageFileId = null;
+        }
+    }
+
+    /**
+     * Is the image cropped?
+     * (Does an uncropped version exist?)
+     *
+     * @return bool
+     */
+    public function isCropped()
+    {
+        return !is_null($this->uncroppedImageFileId);
+    }
+
+    /**
+     * uncroppedImageFileId relation.
+     * Use getUncroppedImageFile() method instead because it's more efficient.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function uncroppedImageFile()
+    {
+        return $this->belongsTo('CtrlV\Models\ImageFile', 'uncroppedImageFileId', 'imageFileId');
+    }
+
+    /**
+     * @return ImageFile|null
+     */
+    public function getUncroppedImageFile()
+    {
+        return is_null($this->uncroppedImageFileId) ? null : $this->uncroppedImageFile;
+    }
+
+    /**
+     * @param ImageFile|null $imageFile
+     */
+    public function setUncroppedImageFile(ImageFile $imageFile = null)
+    {
+        if ($imageFile) {
+            $this->uncroppedImageFileId = $imageFile->getId();
+        } else {
+            $this->uncroppedImageFileId = null;
+        }
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function album()
+    {
+        return $this->belongsTo('CtrlV\Models\Album', 'albumId', 'albumId');
+    }
 
     /**
      * Return the properties in an array.
@@ -141,184 +267,138 @@ class Image extends Base\BaseModel
     {
         $array = parent::toArray();
 
-        $array['height'] = $this->h;
-        $array['width'] = $this->w;
-        $array['urls'] = $this->getUrls();
+        $array['annotation'] = $this->getAnnotationImageFile();
+        $array['image'] = $this->getImageFile();
+        $array['thumbnail'] = $this->getThumbnailImageFile();
 
-        $array['file'] = $this->imageFile;
+        $array['passwordProtected'] = !!$this->password;
+        $array['url'] = $this->getUrl();
 
-        unset($array['h'], $array['w']);
+        // Image belongs to the current user?
+        if (Auth::check() && Auth::user()->userId == $this->userId) {
+            // Any extra info for the image owner
+            $array['isCropped'] = $this->isCropped();
+            $array['anonymous'] = $this->anonymous;
+        } else {
+            if ($this->anonymous) {
+                $array['userId'] = null;
+            }
+        }
+
         ksort($array);
+
         return $array;
     }
 
     /**
-     * Return the URLs to view this image.
-     *
-     * @return array
-     */
-    public function getUrls()
-    {
-        return [
-            'view' => Config::get('app.url') . $this->imageID,
-            'image' => Config::get('app.image_url') . $this->filename,
-            'thumbnail' => $this->thumb ? Config::get('app.thumbnail_url') . $this->filename : null,
-            'annotation' => $this->annotation ? Config::get('app.annotation_url') . $this->annotation : null,
-        ];
-    }
-
-    /**
-     * Check if the image is viewable.
-     * True if:
-     *     - It has no password
-     *     - or the logged in user is the owner of the image
-     *     - or the correct password was supplied
-     *
-     * @param string $password Plain text password
-     *
-     * @return boolean
-     */
-    public function isViewable($password = null)
-    {
-        if (!$this->password) {
-            return true;
-        }
-
-        if ($this->isCurrentUsersImage()) {
-            return true;
-        }
-
-        // TODO: md5 ew
-        if ($password && md5($password) == $this->password) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public function isEditable($key = null)
-    {
-        if ($this->isCurrentUsersImage()) {
-            return true;
-        }
-
-        if (!empty($key) && $key == $this->key) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public function isCurrentUsersImage()
-    {
-        return Auth::check() && $this->userID && Auth::user()->userID == $this->userID;
-    }
-
-    public function setMetadataFromPicture(Picture $picture)
-    {
-        $this->filesize = $picture->filesize();
-        $this->h = $picture->height();
-        $this->w = $picture->width();
-    }
-
-    public function saveWithNewPicture(Picture $picture)
-    {
-        // FIXME: Use DI
-        $fileRepository = new FileManager();
-
-        if (!$filename = $fileRepository->savePicture($picture)) {
-            throw new Exception("Unable to store image file");
-        }
-
-        $this->setMetadataFromPicture($picture);
-        $this->filename = $filename;
-        return $this->save();
-    }
-
-    public function getPicture()
-    {
-        // FIXME: Use DI
-        $fileRepository = new FileManager();
-        return $fileRepository->getPicture('img/' . $this->filename);
-    }
-
-    /**
-     * Generate a key to be stored in a cookie so users who are not logged in
-     * can edit / delete the image.
+     * Returns the URL to the image's page on the site.
      *
      * @return string
      */
-    public function generateKey()
+    public function getUrl()
     {
-        $this->key = sha1(uniqid());
-        return $this->key;
+        return Config::get('app.image_url').$this->imageId;
     }
 
+    /**
+     * Since images can be uploaded without authenticating we need a way to know
+     * if the request is by the person that uploaded the image. A key is generated
+     * and sent back when the image is first uploaded. That should be stored by the client
+     * and used in subsequent requests.
+     *
+     * @param PasswordHasher $passwordHasher
+     *
+     * @return string
+     */
+    public function generateKey(PasswordHasher $passwordHasher)
+    {
+        $key = $passwordHasher->generateKey();
+
+        $this->key = $passwordHasher->generateHash($key);
+
+        return $key;
+    }
+
+    /**
+     * Save the Image model to the database.
+     * If the fileId is changed (meaning the picture has changed) delete
+     * the old file and generate a new thumbnail. Delete the old thumbnail file if one exists.
+     *
+     * @param array $options
+     *
+     * @return bool
+     */
     public function save(array $options = [])
     {
-        $makeThumb = false;
-        $originalFilename = null;
-        // We need to remember the original filename before saving
-        // because the parent saved method clears the dirty flag
-        if ($this->isDirty('filename') || !$this->exists) {
-            $this->thumb = false;
-            $originalFilename = $this->getOriginal('filename');
-            $makeThumb = true;
+        $this->table = 'images';
+
+        /**
+         * Remember these IDs now because the parent::save method clears
+         * the isDirty flag and the original data.
+         */
+        $generateNewThumbnail = false;
+        $originalImageFileId = null;
+        $originalThumbnailImageFileId = null;
+
+        if ($this->isDirty('imageFileId') || !$this->exists) {
+            $originalImageFileId = $this->getOriginal('imageFileId');
+            $this->setThumbnailImageFile(null);
+            $originalThumbnailImageFileId = $this->getOriginal('thumbnailImageFileId');
+            $generateNewThumbnail = true;
         }
 
+        // Save the model
         $result = parent::save($options);
 
-        // We add the generate thumbnail job after saving to avoid any race conditions
-        if ($makeThumb) {
-            if ($originalFilename) {
-                // FIXME: Use DI
-                $fileRepository = new FileManager();
-                $fileRepository->deleteFile('img/' . $originalFilename);
-                $fileRepository->deleteFile('thumb/' . $originalFilename);
+        if ($originalImageFileId && $originalImageFile = ImageFile::find($originalImageFileId)) {
+            if ($originalImageFileId != $this->uncroppedImageFileId) {
+                $originalImageFile->delete();
             }
-
-            // Generate new thumbnail
-            $this->dispatch(new MakeThumbnailJob($this));
         }
 
+        if ($originalThumbnailImageFileId
+            && $originalThumbnailImageFile = ImageFile::find($originalThumbnailImageFileId)
+        ) {
+            $originalThumbnailImageFile->delete();
+        }
+
+        if ($generateNewThumbnail && $imageFile = ImageFile::find($this->imageFileId)) {
+            $this->dispatch(new MakeThumbnailJob($imageFile));
+        }
+
+        $this->table = 'view_images';
         return $result;
     }
 
-    // TODO: What if jobs are currently processing/waiting?
+    /**
+     * Upon deleting the Image also delete the ImageFiles.
+     *
+     * @return bool|null
+     * @throws \Exception
+     */
     public function delete()
     {
-        $fileRepository = new FileManager();
+        $this->table = 'images';
 
-        $fileRepository->deleteFile('img/' . $this->filename);
-
-        if ($this->thumb) {
-            $fileRepository->deleteFile('thumb/' . $this->filename);
+        if ($imageFile = $this->getImageFile()) {
+            $imageFile->delete();
         }
 
-        if ($this->annotation) {
-            $fileRepository->deleteFile('annotation/' . $this->annotation);
+        if ($thumbnailImageFile = $this->getThumbnailImageFile()) {
+            $thumbnailImageFile->delete();
         }
 
-        if ($this->uncroppedfilename) {
-            $fileRepository->deleteFile('uncropped/' . $this->uncroppedfilename);
+        if ($annotationImageFile = $this->getAnnotationImageFile()) {
+            $annotationImageFile->delete();
         }
 
-        unset($fileRepository);
+        if ($uncroppedImageFile = $this->getUncroppedImageFile()) {
+            $uncroppedImageFile->delete();
+        }
 
-        return parent::delete();
-    }
+        $result = parent::delete();
 
-    public static function boot()
-    {
-        parent::boot();
-
-        // Attach event handler, on deleting of the user
-        self::creating(
-            function (Image $image) {
-
-                $image->generateKey();
-
-            }
-        );
+        $this->table = 'view_images';
+        return $result;
     }
 }

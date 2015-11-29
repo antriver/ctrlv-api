@@ -11,18 +11,21 @@ Vagrant.configure("2") do |config|
         puppet.options = "-v --environment vagrant"
     end
 
-    config.vm.define "ctrlv", primary: true do |ctrlv|
+    config.vm.define "ctrlvapi", primary: true do |ctrlvapi|
+
+        ctrlvapi.vm.network "public_network", ip: "192.168.0.201", bridge: "en0: Wi-Fi (AirPort)"
+
         # Create a private network, which allows host-only access to the machine
         # using a specific IP.
-        ctrlv.vm.network "private_network", ip: "192.168.33.20"
+        #ctrlvapi.vm.network "private_network", ip: "192.168.33.20"
 
-        ctrlv.vm.synced_folder ".", "/var/www/ctrlv-api",  owner: "www-data", group: "www-data",  mount_options: ["dmode=777,fmode=777"]
+        ctrlvapi.vm.synced_folder ".", "/var/www/ctrlv-api",  owner: "www-data", group: "www-data",  mount_options: ["dmode=777,fmode=777"]
 
-        ctrlv.vm.hostname = "api.ctrlv.vagrant"
-        ctrlv.hostsupdater.aliases = ["img.ctrlv.vagrant"]
+        ctrlvapi.vm.hostname = "api.ctrlv.vagrant"
+        ctrlvapi.hostsupdater.aliases = ["img.ctrlv.vagrant"]
 
-        ctrlv.vm.provider "virtualbox" do |vbox|
-            vbox.name = "ctrlv.vagrant"
+        ctrlvapi.vm.provider "virtualbox" do |vbox|
+            vbox.name = "api.ctrlv.vagrant"
             vbox.memory = 512
             vbox.cpus = 4
         end

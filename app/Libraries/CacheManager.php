@@ -3,6 +3,7 @@
 namespace CtrlV\Libraries;
 
 use Config;
+use Exception;
 use okw\CF\CF as CloudFlare;
 
 class CacheManager
@@ -16,13 +17,13 @@ class CacheManager
 
     public function purge($relativePath)
     {
-        $url = $this->dataUrl . $relativePath;
+        $url = $this->dataUrl.$relativePath;
 
         $nginxResult = $this->purgeNginx($url);
 
         try {
             $cloudFlareResult = $this->purgeCloudFlare($url);
-        } catch (\okw\CF\Exception\CFException $exception) {
+        } catch (Exception $exception) {
             $cloudFlareResult = false;
         }
 
@@ -34,7 +35,6 @@ class CacheManager
 
     /**
      * Purge a file from the Nginx cache.
-     *
      * Nginx needs this in its config:
      *     proxy_cache_bypass $http_purge_cache;
      *

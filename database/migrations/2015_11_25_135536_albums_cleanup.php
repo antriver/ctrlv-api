@@ -23,24 +23,36 @@ class AlbumsCleanup extends Migration
         DB::statement('ALTER TABLE `albums` CHANGE `date` `createdAt` DATETIME NOT NULL AFTER `password`;');
         DB::statement('ALTER TABLE `albums` ADD `updatedAt` DATETIME  NULL  DEFAULT NULL  AFTER `createdAt`;');
 
+        DB::statement("ALTER TABLE `albums` CHANGE `name` `title` VARCHAR(100)  CHARACTER SET utf8mb4  COLLATE utf8mb4_unicode_ci  NOT NULL  DEFAULT '';");
+
         DB::statement('delete albums from albums left join users on users.userId = albums.userId where users.userId IS NULL');
 
         Schema::table('albums', function (Blueprint $table) {
             $table->foreign('userId')->references('userId')->on('users')->onDelete('cascade')->onUpdate('cascade');
         });
 
-        DB::statement('RENAME TABLE `image_tags` TO `album_images`');
-        DB::statement('ALTER TABLE `album_images` CHANGE `imageID` `imageId` INT(10)  UNSIGNED  NOT NULL  AFTER `tagID`;');
-        DB::statement('ALTER TABLE `album_images` CHANGE `tagID` `albumId` INT(10)  UNSIGNED  NOT NULL');
-        DB::statement('ALTER TABLE `album_images` DROP `date`');
 
-        DB::statement('delete album_images from album_images left join albums on albums.albumId = album_images.albumId where albums.albumId IS NULL');
-        DB::statement('delete album_images from album_images left join images on images.imageId = album_images.imageId where images.imageId IS NULL');
+        // Delete image_tags that refer to dead albums
+        DB::statement('delete image_tags from image_tags left join albums on albums.albumId = image_tags.tagID where albums.albumId IS NULL');
 
-        Schema::table('album_images', function (Blueprint $table) {
-            $table->foreign('albumId')->references('albumId')->on('albums')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('imageId')->references('imageId')->on('images')->onDelete('cascade')->onUpdate('cascade');
+        // Delete image_tags that refer to dead images
+        DB::statement('delete image_tags from image_tags left join images on images.imageId = image_tags.imageID where images.imageId IS NULL');
+
+        // Add albumId field to images
+        DB::statement('ALTER TABLE `images` ADD `albumId` INT(10)  UNSIGNED  NULL  DEFAULT NULL  AFTER `uncroppedImageFileId`');
+
+        Schema::table('images', function (Blueprint $table) {
+            $table->foreign('albumId')->references('albumId')->on('albums')->onDelete('set null')->onUpdate('cascade');
         });
+
+        DB::statement("
+            update `images` `i`
+            left join `image_tags` `it` on `it`.imageID = i.imageId
+            set `i`.albumId = `it`.tagID
+            where `it`.imageID IS NOT NULL
+        ");
+
+        DB::statement("DROP TABLE image_tags");
     }
 
     /**

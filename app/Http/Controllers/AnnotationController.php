@@ -2,101 +2,77 @@
 
 namespace CtrlV\Http\Controllers;
 
-use Config;
-use Illuminate\Contracts\Config\Repository as ConfigRepository;
-use Illuminate\Http\RedirectResponse;
-use Response;
 use CtrlV\Http\Requests;
-use CtrlV\Models\Image;
 use CtrlV\Libraries\FileManager;
 use CtrlV\Libraries\PictureFactory;
-use Illuminate\Http\Request;
+use CtrlV\Models\Image;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\RedirectResponse;
+use Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-/**
- * @apiDefine ImageSuccessResponse
- * @apiSuccessExample {json} Success Response
- *               {
- *                   "success": true,
- *                   "image": [...] // See: Get Image Info
- *               }
- */
-
-/**
- * @apiDefine RequiresViewableImage
- * @apiParam {string} [sessionKey] Session key for the user that owns the image.
- *     **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
- * @apiParam {string} [password] Password to view the image.
- *     **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
- */
-
-/**
- * @apiDefine RequiresEditableImage
- * @apiParam {string} sessionKey Session key for the user that owns the image.
- *     **Either `sessionKey` or `imageKey` is required.**
- * @apiParam {string} imageKey Editing key for the image (obtained when the image is created).
- *     **Either `sessionKey` or `imageKey` is required.**
- */
 class AnnotationController extends Base\ApiController
 {
     /**
-     * @api            {get} /images/{id}/annotation View an Annotation
+     * @api            {get} /images/{imageId}/annotation View an Annotation
      * @apiGroup       Image Annotations
      * @apiDescription Returns an HTTP 302 redirect to the annotation image file.
      * @apiUse         RequiresViewableImage
      *
-     * @param ConfigRepository $config
      * @param Image $image
      *
      * @return Response
      */
-    public function show(ConfigRepository $config, Image $image)
+    public function show(Image $image)
     {
-        $this->requireViewableImage($image);
+        $this->requireViewableModel($image);
 
-        if (!$image->annotation) {
-            return $this->error('There is no annotation for this image.', 404);
+        $annotationImageFile = $image->getAnnotationImageFile();
+
+        if (!$annotationImageFile) {
+            throw new ModelNotFoundException(404, 'There is no annotation for this image.');
         }
 
-        return new RedirectResponse($config->get('app.data_url') . 'annotation/' . $image->annotation);
+        return new RedirectResponse($annotationImageFile->getUrl());
     }
 
     /**
-     * @api            {post} /images/{id}/annotation Create an Annotation
-     * @apiGroup       Image Annotations
+     * @api {post} /images/{imageId}/annotation Create an Annotation
+     * @apiGroup Image Annotations
      * @apiDescription Add an annotation to an image. This will replace an existing annotation if it exists.
      * @apiParam {string} base64 Base64 encoded image to use as the annotation. This does not have to have the same
      *     dimensions as the image, but it must be the same ratio. It will be resized to the size of the image.
-     * @apiUse         RequiresEditableImage
-     * @apiUse         ImageSuccessResponse
+     * @apiUse RequiresEditableImage
+     * @apiUse ImageSuccessResponse
      *
-     * @param Request $request
      * @param Image $image
-     * @param PictureFactory $pictureFactory
      * @param FileManager $fileManager
+     * @param PictureFactory $pictureFactory
      *
+     * @throws \Exception
      * @return Response
      */
     public function store(
-        Request $request,
         Image $image,
-        PictureFactory $pictureFactory,
-        FileManager $fileManager
+        FileManager $fileManager,
+        PictureFactory $pictureFactory
     ) {
         $this->requireEditableImage($image);
 
         $this->validate(
-            $request,
+            $this->request,
             [
                 'base64' => 'required|string'
             ]
         );
 
-        $annotationPicture = $pictureFactory->createFromBase64String($request->input('base64'));
+        $annotationPicture = $pictureFactory->createFromBase64String($this->request->input('base64'));
+
+        $imageFile = $image->getImageFile();
 
         // Make sure the annotation can be resized to the image's size nicely
         $annotationRatio = round($annotationPicture->width() / $annotationPicture->height(), 2);
-        $imageRatio = round($image->w / $image->h, 2);
+        $imageRatio = round($imageFile->width / $imageFile->height, 2);
         if ($annotationRatio !== $imageRatio) {
             throw new HttpException(
                 422,
@@ -105,43 +81,41 @@ class AnnotationController extends Base\ApiController
         }
 
         // Resize annotation to the size of the image
-        $annotationPicture->resize($image->w, $image->h);
+        $annotationPicture->resize($imageFile->width, $imageFile->height);
 
-        $annotationFilename = $fileManager->savePicture($annotationPicture, 'annotation');
+        $annotationImageFile = $fileManager->savePicture($annotationPicture, 'annotation');
 
-        $image->annotation = $annotationFilename;
-
+        $image->setAnnotationImageFile($annotationImageFile);
         $success = $image->save();
 
-        return $this->successResponse(['success' => $success, 'image' => $image->fresh()]);
+        return $this->response(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
-     * @api            {delete} /images/{id}/annotation Delete an Annotation
-     * @apiGroup       Image Annotations
+     * @api {delete} /images/{imageId}/annotation Delete an Annotation
+     * @apiGroup Image Annotations
      * @apiDescription Delete an image's annotation.
-     * @apiUse         RequiresEditableImage
-     * @apiUse         ImageSuccessResponse
+     * @apiUse RequiresEditableImage
+     * @apiUse GenericSuccessResponse
      *
      * @param Image $image
-     * @param FileManager $fileManager
      *
      * @return Response
      */
-    public function destroy(Image $image, FileManager $fileManager)
+    public function destroy(Image $image)
     {
         $this->requireEditableImage($image);
 
-        if (!$image->annotation) {
+        $annotationImageFile = $image->getAnnotationImageFile();
+
+        if (!$annotationImageFile) {
             throw new HttpException(400, "This image does not have an annotation.");
         }
 
-        $fileManager->deleteFile('annotation/' . $image->annotation);
-
-        $image->annotation = null;
-
+        $image->setAnnotationImageFile(null);
+        $annotationImageFile->delete();
         $success = $image->save();
 
-        return $this->successResponse(['success' => $success, 'image' => $image->fresh()]);
+        return $this->response(['success' => $success, 'image' => $image->fresh()]);
     }
 }

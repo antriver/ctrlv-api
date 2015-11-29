@@ -26,20 +26,16 @@ return [
     |
     */
 
-    'url' => env('APP_URL', false),
+    'url' => env('APP_URL', false), // Should have a trailing slash
+    'album_url' => env('APP_URL', false) . 'album/',
+    'image_url' => env('APP_URL', false),
+    'user_url' => env('APP_URL', false) . 'user/',
 
+    'data_dir' => env('APP_DATA_DIR', false),
     'data_url' => env('APP_DATA_URL', false),
-    'image_url' => env('APP_DATA_URL', false) . 'img/',
-    'annotation_url' => env('APP_DATA_URL', false) . 'annotation/',
-    'thumbnail_url' => env('APP_DATA_URL', false) . 'thumb/',
 
     // Serve from Nginx only, not cloudflare
     'direct_data_url' => env('APP_DIRECT_DATA_URL', false),
-
-    'data_dir' => env('APP_DATA_DIR', false),
-    'image_dir' => env('APP_DATA_DIR', false) . 'img/',
-    'annotation_dir' => env('APP_DATA_DIR', false) . 'annotation/',
-    'thumbnail_dir' => env('APP_DATA_DIR', false) . 'thumb/',
 
     /*
     |--------------------------------------------------------------------------

@@ -13,17 +13,18 @@ class ImageFilesFields extends Migration
     public function up()
     {
         Schema::table('images', function (Blueprint $table) {
-            $table->integer('fileId')->unsigned()->nullable()->after('imageId');
-            $table->foreign('fileId')->references('fileId')->on('files')->onDelete('set null')->onUpdate('cascade');
 
-            $table->integer('thumbnailFileId')->unsigned()->nullable()->after('fileId');
-            $table->foreign('thumbnailFileId')->references('fileId')->on('files')->onDelete('set null')->onUpdate('cascade');
+            $table->integer('imageFileId')->unsigned()->nullable()->after('imageId');
+            $table->foreign('imageFileId')->references('imageFileId')->on('image_files')->onDelete('set null')->onUpdate('cascade');
 
-            $table->integer('annotationFileId')->unsigned()->nullable()->after('thumbnailFileId');
-            $table->foreign('annotationFileId')->references('fileId')->on('files')->onDelete('set null')->onUpdate('cascade');
+            $table->integer('thumbnailImageFileId')->unsigned()->nullable()->after('imageFileId');
+            $table->foreign('thumbnailImageFileId')->references('imageFileId')->on('image_files')->onDelete('set null')->onUpdate('cascade');
 
-            $table->integer('uncroppedFileId')->unsigned()->nullable()->after('annotationFileId');
-            $table->foreign('uncroppedFileId')->references('fileId')->on('files')->onDelete('set null')->onUpdate('cascade');
+            $table->integer('annotationImageFileId')->unsigned()->nullable()->after('thumbnailImageFileId');
+            $table->foreign('annotationImageFileId')->references('imageFileId')->on('image_files')->onDelete('set null')->onUpdate('cascade');
+
+            $table->integer('uncroppedImageFileId')->unsigned()->nullable()->after('annotationImageFileId');
+            $table->foreign('uncroppedImageFileId')->references('imageFileId')->on('image_files')->onDelete('set null')->onUpdate('cascade');
         });
     }
 
@@ -35,14 +36,14 @@ class ImageFilesFields extends Migration
     public function down()
     {
         Schema::table('images', function (Blueprint $table) {
-            $table->dropForeign('images_fileid_foreign');
-            $table->dropColumn('fileId');
+            $table->dropForeign('images_imagefileid_foreign');
+            $table->dropColumn('imageFileId');
 
             $table->dropForeign('images_thumbnailfileid_foreign');
             $table->dropColumn('thumbnailFileId');
 
-            $table->dropForeign('images_annotationfileid_foreign');
-            $table->dropColumn('annotationFileId');
+            $table->dropForeign('images_annotationimagefileid_foreign');
+            $table->dropColumn('annotationImageFileId');
 
             $table->dropForeign('images_uncroppedfileid_foreign');
             $table->dropColumn('uncroppedFileId');

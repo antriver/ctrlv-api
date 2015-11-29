@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
         if (Config::get('database.log_queries')) {
             $queryLogger = new \Monolog\Logger('Queries');
 
-            $fileHandler = new \Monolog\Handler\RotatingFileHandler(storage_path() . '/logs/query.log');
+            $fileHandler = new \Monolog\Handler\RotatingFileHandler(storage_path().'/logs/query.log');
 
             $lineFormatter = new \Monolog\Formatter\LineFormatter("%message% %context% %extra%\n", null, true, true);
             $fileHandler->setFormatter($lineFormatter);
@@ -33,9 +33,9 @@ class AppServiceProvider extends ServiceProvider
 
             if (php_sapi_name() !== 'cli') {
                 $queryLogger->info(
-                    "\n\n=======\n{$_SERVER['REQUEST_METHOD']}\n{$_SERVER['REQUEST_URI']}\n" . Request::server(
+                    "\n\n=======\n{$_SERVER['REQUEST_METHOD']}\n{$_SERVER['REQUEST_URI']}\n".Request::server(
                         'HTTP_REFERER'
-                    ) . "\n" . date('Y-m-d H:i:s') . "\n========="
+                    )."\n".date('Y-m-d H:i:s')."\n========="
                 );
             }
 
@@ -46,7 +46,6 @@ class AppServiceProvider extends ServiceProvider
                     $queryLogger->info("\t$time seconds", $bindings);
                 }
             );
-
         }
     }
 
@@ -55,20 +54,32 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton('CacheManager', function ($app) {
-            return new CacheManager();
-        });
+        $this->app->singleton(
+            'CacheManager',
+            function () {
+                return new CacheManager();
+            }
+        );
 
-        $this->app->singleton('FileManager', function ($app) {
-            return new FileManager();
-        });
+        $this->app->singleton(
+            'FileManager',
+            function () {
+                return new FileManager();
+            }
+        );
 
-        $this->app->singleton('PictureFactory', function ($app) {
-            return new PictureFactory();
-        });
+        $this->app->singleton(
+            'PictureFactory',
+            function () {
+                return new PictureFactory();
+            }
+        );
 
-        $this->app->singleton('PasswordHasher', function ($app) {
-            return new PasswordHasher();
-        });
+        $this->app->singleton(
+            'PasswordHasher',
+            function () {
+                return new PasswordHasher();
+            }
+        );
     }
 }

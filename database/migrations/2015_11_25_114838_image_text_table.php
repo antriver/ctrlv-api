@@ -12,13 +12,13 @@ class ImageTextTable extends Migration
      */
     public function up()
     {
-        Schema::create('image_text', function (Blueprint $table) {
+        Schema::create('image_file_text', function (Blueprint $table) {
             $table->engine = 'InnoDB';
 
-            $table->increments('imageTextId');
+            $table->increments('imageFileTextId');
 
-            $table->integer('fileId', false, true)->nullable()->default(null);
-            $table->foreign('fileId')->references('fileId')->on('files')->onDelete('cascade')->onUpdate('cascade');
+            $table->integer('imageFileId', false, true)->nullable()->default(null);
+            $table->foreign('imageFileId')->references('imageFileId')->on('image_files')->onDelete('cascade')->onUpdate('cascade');
 
             $table->longText('text');
 
@@ -26,8 +26,8 @@ class ImageTextTable extends Migration
             $table->dateTime('updatedAt')->nullable()->default(null);
         });
 
-        DB::statement('INSERT INTO image_text (fileId, text, createdAt)
-        SELECT fileId, ocrtext, createdAt FROM images WHERE ocr = 1');
+        DB::statement('INSERT INTO image_file_text (imageFileId, text, createdAt)
+        SELECT imageFileId, ocrtext, createdAt FROM images WHERE ocr = 1');
 
     }
 
@@ -38,6 +38,6 @@ class ImageTextTable extends Migration
      */
     public function down()
     {
-        Schema::drop('image_text');
+        Schema::drop('image_file_text');
     }
 }

@@ -8,24 +8,21 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class RenameFileJob extends Job implements SelfHandling, ShouldQueue
+class DeleteRemoteFileJob extends Job implements SelfHandling, ShouldQueue
 {
     use InteractsWithQueue;
     use SerializesModels;
 
-    private $oldRelativePath;
-    private $newRelativePath;
+    private $path;
 
     /**
      * Create a new job instance.
      *
-     * @param string $oldRelativePath
-     * @param string $newRelativePath
+     * @param string $path
      */
-    public function __construct($oldRelativePath, $newRelativePath)
+    public function __construct($path)
     {
-        $this->oldRelativePath = $oldRelativePath;
-        $this->newRelativePath = $newRelativePath;
+        $this->path = $path;
         parent::__construct();
     }
 
@@ -36,10 +33,12 @@ class RenameFileJob extends Job implements SelfHandling, ShouldQueue
      */
     public function handle(FileManager $fileRepository)
     {
+        $this->logger = $this->getJobLogger();
+
         $this->logger->debug(
-            "Renaming file {$this->oldRelativePath} to {$this->newRelativePath} attempt {$this->attempts()}"
+            "Deleting remote file {$this->path} attempt {$this->attempts()}"
         );
 
-        $fileRepository->renameFile($this->oldRelativePath, $this->newRelativePath, true);
+        $fileRepository->deleteRemoteFile($this->path);
     }
 }

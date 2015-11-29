@@ -87,8 +87,8 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'title' => [
+            'unique' => 'You already have an album with that title.',
         ],
     ],
 
@@ -103,6 +103,9 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'albumId' => 'albumId',
+        'sessionKey' => 'sessionKey'
+    ],
 
 ];

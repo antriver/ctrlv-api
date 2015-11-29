@@ -32,7 +32,7 @@ class DeleteExpired extends Command
             ->where('expires_at', '<=', date('Y-m-d H:i:s'))->get();
 
         foreach ($images as $image) {
-            echo "{$image->imageID}\tExpired at {$image->expires_at}" . PHP_EOL;
+            echo "{$image->imageID}\tExpired at {$image->expires_at}".PHP_EOL;
             $image->delete();
         }
     }

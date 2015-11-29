@@ -29,6 +29,7 @@ class PictureFactory
 
         $picture = InterventionFacade::make($base64String);
         $picture->orientate();
+
         return $picture;
     }
 
@@ -49,6 +50,7 @@ class PictureFactory
 
         $picture = InterventionFacade::make($path);
         $picture->orientate();
+
         return $picture;
     }
 
@@ -68,6 +70,7 @@ class PictureFactory
 
         $picture = InterventionFacade::make($url);
         $picture->orientate();
+
         return $picture;
     }
 }

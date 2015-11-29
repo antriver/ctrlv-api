@@ -3,7 +3,7 @@ namespace PHPSTORM_META {
 
    /**
     * PhpStorm Meta file, to provide autocomplete information for PhpStorm
-    * Generated on 2015-11-23.
+    * Generated on 2015-11-28.
     *
     * @author Barry vd. Heuvel <barryvdh@gmail.com>
     * @see https://github.com/barryvdh/laravel-ide-helper
@@ -42,6 +42,7 @@ namespace PHPSTORM_META {
             'CacheManager' instanceof \CtrlV\Libraries\CacheManager,
             'FileManager' instanceof \CtrlV\Libraries\FileManager,
             'PictureFactory' instanceof \CtrlV\Libraries\PictureFactory,
+            'PasswordHasher' instanceof \CtrlV\Libraries\PasswordHasher,
             'image' instanceof \Intervention\Image\ImageManager,
             'command.app.name' instanceof \Illuminate\Foundation\Console\AppNameCommand,
             'command.clear-compiled' instanceof \Illuminate\Foundation\Console\ClearCompiledCommand,
@@ -159,6 +160,7 @@ namespace PHPSTORM_META {
             'CacheManager' instanceof \CtrlV\Libraries\CacheManager,
             'FileManager' instanceof \CtrlV\Libraries\FileManager,
             'PictureFactory' instanceof \CtrlV\Libraries\PictureFactory,
+            'PasswordHasher' instanceof \CtrlV\Libraries\PasswordHasher,
             'image' instanceof \Intervention\Image\ImageManager,
             'command.app.name' instanceof \Illuminate\Foundation\Console\AppNameCommand,
             'command.clear-compiled' instanceof \Illuminate\Foundation\Console\ClearCompiledCommand,
@@ -276,6 +278,7 @@ namespace PHPSTORM_META {
             'CacheManager' instanceof \CtrlV\Libraries\CacheManager,
             'FileManager' instanceof \CtrlV\Libraries\FileManager,
             'PictureFactory' instanceof \CtrlV\Libraries\PictureFactory,
+            'PasswordHasher' instanceof \CtrlV\Libraries\PasswordHasher,
             'image' instanceof \Intervention\Image\ImageManager,
             'command.app.name' instanceof \Illuminate\Foundation\Console\AppNameCommand,
             'command.clear-compiled' instanceof \Illuminate\Foundation\Console\ClearCompiledCommand,
@@ -393,6 +396,7 @@ namespace PHPSTORM_META {
             'CacheManager' instanceof \CtrlV\Libraries\CacheManager,
             'FileManager' instanceof \CtrlV\Libraries\FileManager,
             'PictureFactory' instanceof \CtrlV\Libraries\PictureFactory,
+            'PasswordHasher' instanceof \CtrlV\Libraries\PasswordHasher,
             'image' instanceof \Intervention\Image\ImageManager,
             'command.app.name' instanceof \Illuminate\Foundation\Console\AppNameCommand,
             'command.clear-compiled' instanceof \Illuminate\Foundation\Console\ClearCompiledCommand,

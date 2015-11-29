@@ -8,14 +8,15 @@
         "php": ">=5.5.9",
         "laravel/framework": "5.1.*",
         "kirkbushell/eloquence": "^1.4",
-        "gabrielbull/browser": "^3.1",
         "pda/pheanstalk": "^3.0",
         "aws/aws-sdk-php-laravel": "^3.0",
         "intervention/image": "^2.3",
         "okwinza/cloudflare-api": "^1.0",
         "barryvdh/laravel-ide-helper": "^2.1",
         "tmd/auto-git-pull": "^2.1",
-        "doctrine/dbal": "^2.5"
+        "doctrine/dbal": "^2.5",
+        "sinergi/browser-detector": "^5.1",
+        "thiagoalessio/tesseract_ocr": "^0.2.1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

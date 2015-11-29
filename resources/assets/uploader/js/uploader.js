@@ -1,5 +1,5 @@
 var host;
-if (window.opener && window.opener.frames) {
+if (window.opener && window.opener.frames.length > 0) {
     /**
      * easyXDM Magic
      */
@@ -32,7 +32,7 @@ if (window.opener && window.opener.frames) {
  */
 var image = null;
 
-$(document).on('click', '.restart-btn', function(e){
+$(document).on('click', '#restart-btn', function(e){
     e.preventDefault();
     $('.upload-status').addClass('out');
     $('#upload-waiting').removeClass('out');
@@ -40,7 +40,7 @@ $(document).on('click', '.restart-btn', function(e){
     image = null;
 });
 
-$(document).on('click', '.accept-btn', function(e){
+$(document).on('click', '#accept-btn', function(e){
     e.preventDefault();
     if (host) {
         host.sendData({image: image});
@@ -58,8 +58,10 @@ $(document).on('ctrlvuploadstart', function(){
 $(document).on('ctrlvuploadcomplete', function(e){
     $('.upload-status').addClass('out');
     $('#upload-complete').removeClass('out');
-    image = e.image;
-    $('#container').css('background-image','url(' + e.image.urls.image + ')');
+    var viewUrl = e.image.url;
+    var imageUrl = e.image.image.url;
+    $('#view-btn').attr('href', viewUrl);
+    $('#container').css('background-image','url(' + imageUrl + ')');
 });
 
 $(document).on('ctrlvuploaderror', function(e){
@@ -69,21 +71,24 @@ $(document).on('ctrlvuploaderror', function(e){
 
 $(document).on('keyup', function(e) {
     // Highlighting keys when pressing
-    if (e.which == 91) { // cmd
+    if (e.which == 91 || e.which === 224) { // cmd
         $('.kbd-cmd').removeClass('pressed');
-    } else if (e.which == 17) { // ctrlv
-        $('.kbd-ctrlv').removeClass('pressed');
+    } else if (e.which == 17) { // ctrl
+        $('.kbd-ctrl').removeClass('pressed');
     } else if (e.which == 86) { // v
         $('.kbd-v').removeClass('pressed');
     }
 });
 
 $(document).on('keydown', function(e) {
+
+    console.log(e);
+
     // Highlighting keys when pressing
-    if (e.which == 91) { // cmd
+    if (e.which == 91 || e.which === 224) { // cmd (91 in
         $('.kbd-cmd').addClass('pressed');
-    } else if (e.which == 17) { // ctrlv
-        $('.kbd-ctrlv').addClass('pressed');
+    } else if (e.which == 17) { // ctrl
+        $('.kbd-ctrl').addClass('pressed');
     } else if (e.which == 86) { // v
         $('.kbd-v').addClass('pressed');
     }

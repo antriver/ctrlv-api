@@ -4,12 +4,13 @@ namespace CtrlV\Libraries;
 
 use AWS;
 use Config;
-use Exception;
-use InterventionFacade;
-use CtrlV\Jobs\DeleteFileJob;
-use CtrlV\Jobs\RenameFileJob;
+use CtrlV\Jobs\DeleteRemoteFileJob;
+use CtrlV\Jobs\MoveRemoteFileJob;
 use CtrlV\Jobs\OptimizeFileJob;
+use CtrlV\Models\ImageFile;
+use Exception;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use InterventionFacade;
 use Intervention\Image\Image as Picture;
 
 /**
@@ -20,54 +21,47 @@ class FileManager
     use DispatchesJobs;
 
     // Directories in the image dir
-    const ANNOTATION = 'annotation';
-    const IMAGE = 'img';
-    const THUMB = 'thumb';
-    const UNCROPPED = 'uncropped';
+    const ANNOTATION_DIR = 'annotation';
+    const IMAGE_DIR = 'img';
+    const THUMBNAIL_DIR = 'thumb';
+    const UNCROPPED_DIR = 'uncropped';
 
-    private $localDir;
+    private $localDataDirectory;
     private $s3BucketName;
+
+    /**
+     * @var \Aws\S3\S3Client
+     */
     private $s3Client = null;
     private $s3Access = 'public-read';
-    private $s3Expires = 'Fri, 1 Jan 2100 00:00:00 GMT';
+    private $s3ExpiresHeader = 'Fri, 1 Jan 2100 00:00:00 GMT';
 
     public function __construct()
     {
-        $this->localDir = Config::get('app.data_dir');
+        $this->localDataDirectory = Config::get('app.data_dir');
         $this->s3BucketName = Config::get('aws.s3.image_bucket');
     }
 
     /**
-     * Return the contents of a file.
+     * Return a Picture object with the contents of the given ImageFile.
      *
-     * @param string $relativePath
-     *
-     * @return string
-     */
-    public function getFile($relativePath)
-    {
-        if ($this->localFileExists($relativePath)) {
-            return file_get_contents($this->localDir . $relativePath);
-        }
-
-        return $this->copyFromRemote($relativePath, true);
-    }
-
-    /**
-     * Return a Picture object from the given relativePath.
-     *
-     * @param string $relativePath
+     * @param ImageFile $imageFile
      *
      * @return Picture|null
      */
-    public function getPicture($relativePath)
+    public function getPictureForImageFile(ImageFile $imageFile)
     {
-        if ($this->localFileExists($relativePath)) {
-            return InterventionFacade::make($this->localDir . $relativePath);
+        $path = $imageFile->getPath();
+
+        if (!$this->localFileExists($path)) {
+            // Copy from S3 to server if it's not already there
+            if (!$this->copyFromRemote($path)) {
+                return null;
+            }
         }
 
-        if ($this->copyFromRemote($relativePath)) {
-            return InterventionFacade::make($this->localDir . $relativePath);
+        if ($this->localFileExists($path)) {
+            return InterventionFacade::make($this->localDataDirectory.$path);
         }
 
         return null;
@@ -78,14 +72,19 @@ class FileManager
      * Runs OptimizeFileJob on the file after it is saved.
      *
      * @param Picture $picture
-     * @param string $type IMAGE|ANNOTATION|THUMB
+     * @param string $directory One of the *_DIR constants.
      * @param string $filename
+     * @param ImageFile|null $originalImageFile
      *
      * @throws Exception
-     * @return string Path to the saved file relative to the localDir
+     * @return ImageFile
      */
-    public function savePicture(Picture $picture, $type = 'img', $filename = null)
-    {
+    public function savePicture(
+        Picture $picture,
+        $directory = self::IMAGE_DIR,
+        $filename = null,
+        ImageFile $originalImageFile = null
+    ) {
         if (!$filename) {
             $mime = $picture->mime();
             if (empty($mime)) {
@@ -96,33 +95,46 @@ class FileManager
             $filename = $this->generateFilename($extension);
         }
 
-        $relativePath = $type . '/' . $filename;
+        $relativePath = $directory.'/'.$filename;
 
         // Save locally
         if (!$this->savePictureLocally($picture, $relativePath)) {
             throw new Exception('Unable to save file locally.');
         }
 
-        // Optimize and copy to remote storage
-        $this->dispatch(new OptimizeFileJob($relativePath));
+        $imageFile = new ImageFile(
+            [
+                'originalImageFileId' => $originalImageFile ? $originalImageFile->getId() : null,
+                'directory' => $directory,
+                'filename' => $filename,
+                'width' => $picture->getWidth(),
+                'height' => $picture->getHeight(),
+                'size' => $picture->filesize() // File size in bytes
+            ]
+        );
+        $imageFile->save();
 
-        return $filename;
+        // Optimize and copy to remote storage
+        $this->dispatch(new OptimizeFileJob($imageFile));
+
+        return $imageFile;
     }
 
     /**
      * Save a file in the local filesystem.
      *
      * @param string $contents
-     * @param string $relativePath Relative to localDir
+     * @param string $path Relative to localDir
      *
      * @return boolean
      */
-    private function saveFileLocally($contents, $relativePath)
+    private function saveFileLocally($contents, $path)
     {
-        $this->createLocalDirectory(dirname($relativePath));
+        $this->createLocalDirectory(dirname($path));
 
-        $result = file_put_contents($this->localDir . $relativePath, $contents);
+        $result = file_put_contents($this->localDataDirectory.$path, $contents);
         clearstatcache();
+
         return $result;
     }
 
@@ -138,8 +150,9 @@ class FileManager
     {
         $this->createLocalDirectory(dirname($relativePath));
 
-        $result = $picture->save($this->localDir . $relativePath);
+        $result = $picture->save($this->localDataDirectory.$relativePath);
         clearstatcache();
+
         return $result;
     }
 
@@ -153,11 +166,11 @@ class FileManager
     private function createLocalDirectory($relativePath)
     {
         clearstatcache();
-        if (is_dir($this->localDir . $relativePath)) {
+        if (is_dir($this->localDataDirectory.$relativePath)) {
             return true;
         }
 
-        return mkdir($this->localDir . $relativePath, 0777, true); // true = make intermediate directories
+        return mkdir($this->localDataDirectory.$relativePath, 0777, true); // true = make intermediate directories
     }
 
     /**
@@ -170,15 +183,15 @@ class FileManager
      */
     private function generateFilename($extension = 'jpg', $prefix = '')
     {
-        $directory = date('y/m/d') . '/';
+        $directory = date('y/m/d').'/';
 
         $filename = $directory;
         if ($prefix) {
-            $filename .= $prefix . '-';
+            $filename .= $prefix.'-';
         }
         $filename .= uniqid();
         if ($extension) {
-            $filename .= '.' . $extension;
+            $filename .= '.'.$extension;
         }
 
         return $filename;
@@ -188,22 +201,33 @@ class FileManager
      * Copy local file to remote storage.
      * Public so it can be run from a Job.
      *
-     * @param string $relativePath
+     * @param ImageFile $imageFile
      *
      * @return \Aws\Result
      */
-    public function copyToRemote($relativePath)
+    public function copyToRemote(ImageFile $imageFile)
     {
         $s3Client = $this->getS3Client();
-        return $s3Client->putObject(
+
+        $path = $imageFile->getPath();
+
+        $storageClass = $imageFile->directory === FileManager::THUMBNAIL_DIR ? 'REDUCED_REDUNDANCY' : 'STANDARD';
+
+        $result = $s3Client->putObject(
             [
                 'ACL' => $this->s3Access,
                 'Bucket' => $this->s3BucketName,
-                'Expires' => $this->s3Expires,
-                'Key' => $relativePath,
-                'SourceFile' => $this->localDir . $relativePath
+                'Expires' => $this->s3ExpiresHeader,
+                'Key' => $path,
+                'SourceFile' => $this->localDataDirectory.$path,
+                'StorageClass' => $storageClass
             ]
         );
+
+        $imageFile->copied = true;
+        $imageFile->save();
+
+        return $result;
     }
 
     /**
@@ -222,6 +246,7 @@ class FileManager
         if ($url = $s3Client->getObjectUrl($this->s3BucketName, $relativePath)) {
             if ($contents = file_get_contents($url)) {
                 $this->saveFileLocally($contents, $relativePath);
+
                 return $returnContents ? $contents : true;
             }
         }
@@ -230,101 +255,88 @@ class FileManager
     }
 
     /**
-     * Deletes a file both locally and from remote.
+     * Delete a file from local storage.
      *
-     * @param string $relativePath
-     * @param boolean $synchronously Delete from remote
-     *
-     * @return array
+     * @param string $path
      */
-    public function deleteFile($relativePath, $synchronously = false)
+    public function deleteFile($path)
     {
-        $result = [];
-
-        // Local always happens synchronously
-        if ($this->localFileExists($relativePath)) {
-            $result['local'] = unlink($this->localDir . $relativePath);
+        if ($this->localFileExists($path)) {
+            $result['local'] = unlink($this->localDataDirectory.$path);
             clearstatcache();
         }
 
-        // Remote deletion can happen in a queue
-        if (!$synchronously) {
-            $result['queued'] = $this->dispatch(new DeleteFileJob($relativePath));
-            return $result;
-        }
-
-        $result['remote'] = $this->deleteFromRemote($relativePath);
-
         $cacheManager = new CacheManager();
-        $result['purge'] = $cacheManager->purge($relativePath);
-
-        return $result;
+        $cacheManager->purge($path);
     }
 
     /**
-     * Delete a file from remote only.
+     * Delete a file from remote storage.
      *
-     * @param string $relativePath
-     *
-     * @return bool
+     * @param string $path
      */
-    public function deleteFromRemote($relativePath)
+    public function deleteRemoteFile($path)
     {
         $s3Client = $this->getS3Client();
         try {
-            $s3Client->deleteMatchingObjects($this->s3BucketName, $relativePath);
-            return true;
+            $s3Client->deleteMatchingObjects($this->s3BucketName, $path);
         } catch (Exception $e) {
-            return false;
         }
+
+        $cacheManager = new CacheManager();
+        $cacheManager->purge($path);
     }
 
-    /**
-     * Rename a file both locally and from remote.
-     *
-     * @param string $oldRelativePath
-     * @param string $newRelativePath
-     * @param bool $synchronously
-     *
-     * @return array
-     */
-    public function renameFile($oldRelativePath, $newRelativePath, $synchronously = false)
+    public function moveFile(ImageFile $file, $newDirectory)
     {
-        $result = [];
+        $oldPath = $file->getPath();
+        $newPath = $newDirectory.'/'.$file->getFilename();
 
-        // Local always happens synchronously
-        if ($this->localFileExists($oldRelativePath)) {
-            $this->createLocalDirectory(dirname($newRelativePath));
-            $result['local'] = rename($this->localDir . $oldRelativePath, $this->localDir . $newRelativePath);
+        // Move the local file
+        if ($this->localFileExists($oldPath)) {
+            $this->createLocalDirectory(dirname($newPath));
+            rename($this->localDataDirectory.$oldPath, $this->localDataDirectory.$newPath);
             clearstatcache();
         }
 
-        // Remote renaming can happen in a queue
-        if (!$synchronously) {
-            return $this->dispatch(new RenameFileJob($oldRelativePath, $newRelativePath));
-        }
+        // Move the remote file
+        $this->dispatch(new MoveRemoteFileJob($oldPath, $newPath));
 
+        $file->directory = $newDirectory;
+        $file->save();
+
+        $cacheManager = new CacheManager();
+        $cacheManager->purge($oldPath);
+        $cacheManager->purge($newPath);
+    }
+
+    /**
+     * Called by MoveRemoteFileJob
+     *
+     * @param string $oldPath
+     * @param string $newPath
+     */
+    public function moveRemoteFile($oldPath, $newPath)
+    {
         $s3Client = $this->getS3Client();
 
         if ($s3Client->copyObject(
             [
                 'ACL' => $this->s3Access,
                 'Bucket' => $this->s3BucketName,
-                'CopySource' => "{$this->s3BucketName}/{$oldRelativePath}",
-                'Expires' => $this->s3Expires,
-                'Key' => $newRelativePath,
+                'CopySource' => "{$this->s3BucketName}/{$oldPath}",
+                'Expires' => $this->s3ExpiresHeader,
+                'Key' => $newPath,
             ]
         )
         ) {
             $result['remote'] = true;
-            $s3Client->deleteMatchingObjects($this->s3BucketName, $oldRelativePath);
+            $s3Client->deleteMatchingObjects($this->s3BucketName, $oldPath);
         }
 
         $cacheManager = new CacheManager();
-        $cacheManager->purge($oldRelativePath);
-        $cacheManager->purge($newRelativePath); // Just in case
-
-        return $result;
+        $cacheManager->purge($oldPath);
+        $cacheManager->purge($newPath);
     }
 
     /**
@@ -336,7 +348,7 @@ class FileManager
      */
     private function localFileExists($relativePath)
     {
-        return is_file($this->localDir . $relativePath);
+        return is_file($this->localDataDirectory.$relativePath);
     }
 
     /**
@@ -418,6 +430,7 @@ class FileManager
         }
 
         $this->s3Client = AWS::createClient('s3');
+
         return $this->s3Client;
     }
 }

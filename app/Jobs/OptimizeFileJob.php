@@ -3,30 +3,36 @@
 namespace CtrlV\Jobs;
 
 use Config;
+use Exception;
 use CtrlV\Libraries\CacheManager;
 use CtrlV\Libraries\FileManager;
+use CtrlV\Models\ImageFile;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
+/**
+ * Optimizes an image and copies it to the remote storage (S3).
+ */
 class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
 {
     use InteractsWithQueue;
     use SerializesModels;
 
-    private $relativePath;
+    private $imageFile;
 
     /**
      * Create a new job instance.
      *
-     * @param string $relativePath
+     * @param ImageFile $imageFile
      *
+     * @internal param string $relativePath
      * @return \CtrlV\Jobs\OptimizeFileJob
      */
-    public function __construct($relativePath)
+    public function __construct(ImageFile $imageFile)
     {
-        $this->relativePath = $relativePath;
+        $this->imageFile = $imageFile;
         parent::__construct();
     }
 
@@ -38,26 +44,37 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
      */
     public function handle(FileManager $fileRepository, CacheManager $cacheManager)
     {
-        $this->logger->debug("Optimizing file {$this->relativePath} attempt {$this->attempts()}");
+        $this->logger = $this->getJobLogger();
+
+        $this->logger->debug(
+            "Optimizing file {$this->imageFile->getId()} {$this->imageFile->getPath()} attempt {$this->attempts()}"
+        );
 
         $this->optimize();
 
-        $fileRepository->copyToRemote($this->relativePath);
-        $cacheManager->purge($this->relativePath);
+        $fileRepository->copyToRemote($this->imageFile);
+        $cacheManager->purge($this->imageFile->getPath());
     }
 
     private function optimize()
     {
-        $tmpFileName = 'ctrlv-optimize-' . md5($this->relativePath);
-        $tempSourcePath = tempnam('/tmp', $tmpFileName . '-in');
-        $tempDestPath = tempnam('/tmp', $tmpFileName . '-out');
+        $path = $this->imageFile->getPath();
+
+        $tmpFileName = 'ctrlv-optimize-'.$this->imageFile->getId();
+        $tempSourcePath = tempnam('/tmp', $tmpFileName.'-in');
+        $tempDestPath = tempnam('/tmp', $tmpFileName.'-out');
 
         $cmd = null;
 
-        $localDir = Config::get('app.data_dir');
-        $filePath = $localDir . $this->relativePath;
+        $localDataDirectory = Config::get('app.data_dir');
+        $fullPath = $localDataDirectory.$path;
 
-        switch (exif_imagetype($filePath)) {
+        if (!file_exists($fullPath)) {
+            throw new Exception("Cannot find local file {$fullPath}");
+        }
+
+        $exifType = exif_imagetype($fullPath);
+        switch ($exifType) {
 
             case IMAGETYPE_JPEG:
                 $cmd = "jpegtran -copy none -optimize -progressive {$tempSourcePath} > {$tempDestPath}";
@@ -68,14 +85,14 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
                 break;
 
             default:
-                return false;
+                throw new Exception("Unsupported file type {$exifType}");
         }
 
         if (empty($cmd)) {
             return false;
         }
 
-        $cmd = "cp {$filePath} {$tempSourcePath} && $cmd && mv {$tempDestPath} {$filePath} && rm {$tempSourcePath}";
+        $cmd = "cp {$fullPath} {$tempSourcePath} && $cmd && mv {$tempDestPath} {$fullPath} && rm {$tempSourcePath}";
 
         passthru($cmd);
 
@@ -85,6 +102,12 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
         if (file_exists($tempDestPath)) {
             unlink($tempDestPath);
         }
+
+        $optimizedSize = filesize($fullPath);
+
+        $this->imageFile->optimized = true;
+        $this->imageFile->optimizedSize = $optimizedSize;
+        $this->imageFile->save();
 
         return true;
     }

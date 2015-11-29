@@ -2,141 +2,176 @@
 
 namespace CtrlV\Http\Controllers;
 
-use App;
-use Config;
-use Illuminate\Auth\Guard;
-use Illuminate\Config\Repository as ConfigRepository;
+use CtrlV\Http\Requests;
+use CtrlV\Libraries\FileManager;
+use CtrlV\Libraries\PasswordHasher;
+use CtrlV\Libraries\PictureFactory;
+use CtrlV\Models\Image;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Input;
 use Response;
-use CtrlV\Http\Requests;
-use CtrlV\Models\Image;
-use CtrlV\Libraries\FileManager;
-use CtrlV\Libraries\PictureFactory;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-/**
- * @apiDefine ImageSuccessResponse
- * @apiSuccessExample {json} Success Response
- *               {
- *                   "success": true,
- *                   "image": [...] // See Get Image Info
- *               }
- */
-
-/**
- * @apiDefine RequiresViewableImage
- * @apiParam {string} [sessionKey] Session key for the user that owns the image.
- *     **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
- * @apiParam {string} [password] Password to view the image.
- *     **Either `sessionKey` or `password` is required if the image's privacy is `2`.**
- */
-
-/**
- * @apiDefine RequiresEditableImage
- * @apiParam {string} sessionKey Session key for the user that owns the image.
- *     **Either `sessionKey` or `imageKey` is required.**
- * @apiParam {string} imageKey Editing key for the image (obtained when the image is created).
- *     **Either `sessionKey` or `imageKey` is required.**
- */
 class ImagesController extends Base\ApiController
 {
     /**
-     * @api            {post} /images Create an Image
-     * @apiGroup       Images
-     * @apiDescription Store an image and return its metadata and a URL to view it. The returned `image` object
-     *     contains an additional property named `key` that can be used to manipulate the image in future requests.
-     *                 <br/>The default privacy setting for new images is 0
-     *                 <b>or</b> the user's `defaultPrivacy` value if `sessionKey` is given.
-     *                 (See "Get an Image" for privacy options).
+     * @api {post} /images Create an Image
+     * @apiGroup Images
+     * @apiDescription Store an image and return its metadata including a to view it.
+     *     <br/>The image will be made anonymous if a `sessionKey` is given and the user's `defaultAnonymous`
+     *     value is `true`.
+     *     <br/>The image will be password protected if a `sessionKey` is given and the user's `defaultPassword`
+     *     value is set.
+     *     <br/>If no `sessionKey` is given in the request, an `imageKey` property will be returned in the response
+     *     it is a 64 character string that can be used to manipulate the image in future requests.
+     *     If a sessionKey was given, use that or another sessionKey for that user to manipulate it.
      * @apiParam {string} base64 Base64 encoded image to upload.
      * @apiParam {string} [sessionKey] A session key for a user the image should be attributed to.
-     * @apiUse         ImageSuccessResponse
+     * @apiSuccessExample {json} Success Response
+     *     {
+     *       "success": true,
+     *       "image": {
+     *         // See Get Image Info
+     *       },
+     *       "imageKey": "2c9933ce51d082ec61a4a55e21cb9befabdca6a65635930fdd0891dbb78f68f2"
+     *     }
      *
-     * @param Request $request
+     * @param FileManager $fileManager
      * @param PictureFactory $pictureFactory
-     * @param Guard $auth
+     * @param PasswordHasher $passwordHasher
      *
-     * @throws \Exception
+     * @throws Exception
      * @return Response
      */
-    public function store(Request $request, PictureFactory $pictureFactory, Guard $auth)
+    public function store(FileManager $fileManager, PictureFactory $pictureFactory, PasswordHasher $passwordHasher)
     {
-        if ($request->has('base64')) {
-            $picture = $pictureFactory->createFromBase64String($request->input('base64'));
-        } elseif ($request->hasFile('file')) {
-            $picture = $pictureFactory->createFromUploadedFile($request->file('file'));
-        } else {
-            throw new HttpException(400, 'Please provide a base64 image or uploaded file');
+        $this->validate(
+            $this->request,
+            [
+                'base64' => 'required_without:file',
+                'file' => 'required_without:base64',
+                'sessionKey' => 'required_with:albumId'
+            ]
+        );
+
+        $albumId = null;
+
+        // Validating albumId later because we want to ensure the session is setup first
+        if ($albumId = $this->request->input('albumId')) {
+            $this->validate(
+                $this->request,
+                [
+                    'albumId' => 'exists:albums,albumId,userId,'.$this->user->getId()
+                ]
+            );
+        }
+
+        if ($this->request->has('base64')) {
+            $picture = $pictureFactory->createFromBase64String($this->request->input('base64'));
+        } elseif ($this->request->hasFile('file')) {
+            $picture = $pictureFactory->createFromUploadedFile($this->request->file('file'));
         }
 
         if (empty($picture)) {
-            throw new HttpException(500);
+            throw new HttpException(400, "Unable to create picture from input.");
         }
 
         $userId = null;
-        if ($auth->check()) {
-            /** @var \CtrlV\Models\User $user */
-            $user = $auth->user();
-            $userId = $user->id;
+        $anonymous = false;
+        $password = null;
+
+        if ($this->user) {
+            $userId = $this->user->userId;
+            $anonymous = $this->user->defaultAnonymous;
+            $password = $this->user->defaultPassword;
         }
 
         $image = new Image(
             [
-                'IP' => $request->ip(),
-                'userID' => $userId,
+                'albumId' => $albumId,
+                'ip' => $this->request->getClientIp(),
+                'userId' => $userId,
+                'anonymous' => $anonymous,
+                'password' => $password
             ]
         );
 
-        $image->saveWithNewPicture($picture);
+        if (!$this->user) {
+            $key = $image->generateKey($passwordHasher);
+        } else {
+            $key = null;
+        }
+
+        $imageFile = $fileManager->savePicture($picture);
+        $image->setImageFile($imageFile);
+        $image->save();
 
         /** @var Image $image */
         $image = $image->fresh();
 
-        $imageArray = $image->toArray();
-        $imageArray['key'] = $image->key;
+        $response = [
+            'image' => $image,
+            'success' => true
+        ];
 
-        return $this->successResponse(
-            [
-                'image' => $imageArray,
-                'success' => true,
-            ]
-        );
+        if ($key) {
+            $response['imageKey'] = $key;
+        }
+
+        return $this->response($response);
     }
 
     /**
-     * @api            {get} /images/{id} Get Image Info
-     * @apiGroup       Images
+     * @api {get} /images/{imageId} Get Image Info
+     * @apiGroup Images
      * @apiDescription Get the stored metadata for an image.
-     *                 <br/><br/><strong>Privacy Settings</strong>
-     *                 <br/>`0` = publicly visible and the name of the user is displayed.
-     *                 <br/>`1` = publicly visible but the name of the user is <b>not</b> displayed.
-     *                 <br/>`2` = password required to view and the name of the user is <b>not</b> displayed.
-     * @apiUse         RequiresViewableImage
+     *     <br/>If an image is anonymous the `userId` value will set to `null` unless a valid `sessionKey`
+     *     for the owner of the image is given.
+     * @apiUse RequiresViewableImage
      * @apiSuccessExample {json} Success Response
-     * {
-     *     "image": {
-     *       "batchID": "",
-     *       "caption": "",
-     *       "date": "2015-08-15 22:40:58",
-     *       "expires": null,
-     *       "filesize": 394938,
-     *       "height": 666,
-     *       "imageID": 4,
-     *       "ocrtext": "",
-     *       "privacy": 0,
-     *       "urls": {
-     *         "view": "http://ctrlv.in/4",
-     *         "image": "http://img.ctrlv.in/img/15/08/15/55cfcad49dd1b.png",
-     *         "thumbnail": "http://img.ctrlv.in/thumb/15/08/15/55cfcad49dd1b.png",
-     *         "annotation": null
-     *       },
-     *       "userID": null,
-     *       "views": 5,
-     *       "width": 493
+     *     {
+     *       "image": {
+     *         "annotation": null,
+     *         "batchId": null,
+     *         "createdAt": "2010-05-03T07:22:35+01:00",
+     *         "expiresAt": null,
+     *         "image": {
+     *           "createdAt": "2010-05-03T07:22:35+01:00",
+     *           "directory": "img",
+     *           "fileId": 1,
+     *           "filename": "4bdec00b43a39.jpg",
+     *           "height": 1040,
+     *           "optimized": null,
+     *           "size": 181,
+     *           "updatedAt": null,
+     *           "url": "http://img.ctrlv.in/img/4bdec00b43a39.jpg",
+     *           "width": 1920
+     *         },
+     *         "imageId": 1,
+     *         "isCropped": false,
+     *         "privacy": 0,
+     *         "thumbnail": {
+     *           "createdAt": null,
+     *           "directory": "thumb",
+     *           "fileId": 663542,
+     *           "filename": "4bdec00b43a39.jpg",
+     *           "height": null,
+     *           "optimized": false,
+     *           "size": null,
+     *           "updatedAt": null,
+     *           "url": "http://img.ctrlv.in/thumb/4bdec00b43a39.jpg",
+     *           "width": null
+     *         },
+     *         "title": "It's improved since this I promise",
+     *         "updatedAt": null,
+     *         "url": "http://ctrlv.in/1",
+     *         "userId": null,
+     *         "views": 1238
+     *       }
      *     }
-     *   }
      *
      * @param Image $image
      *
@@ -144,272 +179,84 @@ class ImagesController extends Base\ApiController
      */
     public function show(Image $image)
     {
-        $this->requireViewableImage($image);
-        return $this->successResponse(['image' => $image]);
+        $this->requireViewableModel($image);
+
+        return $this->response(['image' => $image]);
     }
 
     /**
-     * @api            {get} /images/{id}/image View an Image
-     * @apiGroup       Images
-     * @apiDescription Returns an HTTP 302 redirect to the image file.
-     * @apiUse         RequiresViewableImage
-     *
-     * @param ConfigRepository $config
-     * @param Image $image
-     *
-     * @return Response
-     */
-    public function view(ConfigRepository $config, Image $image)
-    {
-        $this->requireViewableImage($image);
-
-        // Display the image right now instead of redirecting to the correct URL
-        // This is good for testing but bad for production
-        if (Input::has('display')) {
-            return $image->getPicture()->response();
-        }
-
-        return new RedirectResponse($config->get('app.data_url') . 'img/' . $image->filename);
-    }
-
-    /**
-     * @api            {get} /images/{id}/thumbnail View a Thumbnail
-     * @apiGroup       Images
-     * @apiDescription Returns an HTTP 302 redirect to the thumbnail image file. The thumbnail is 200x200px
-     * @apiUse         RequiresViewableImage
-     *
-     * @param ConfigRepository $config
-     * @param Image $image
-     *
-     * @return Response
-     */
-    public function viewThumbnail(ConfigRepository $config, Image $image)
-    {
-        $this->requireViewableImage($image);
-
-        if (!$image->thumb) {
-            return $this->error('There is no thumbnail for this image.', 404);
-        }
-
-        return new RedirectResponse($config->get('app.data_url') . 'thumb/' . $image->filename);
-    }
-
-    /**
-     * @api            {put} /images/{id} Update Image Info
-     * @apiGroup       Images
+     * @api {put} /images/{imageId} Update Image Info
+     * @apiGroup Images
      * @apiDescription Update the stored metadata for an image.
-     * @apiParam {string} [caption] Caption for the image. Send an empty string to remove the caption.
-     * @apiParam {int=0,1,2} [privacy] New privacy setting. See "Create an Image".
-     * @apiParam {string} [password] Password that will be needed to view the image.
-     *     **Required if `privacy` is given and is `2`.**
-     * @apiUse         RequiresEditableImage
-     * @apiUse         ImageSuccessResponse
+     * @apiParam {string} [title] Title for the image. Give a blank value to clear.
+     * @apiParam {boolean=0,1} [anonymous=0] Hide the name of the uploader? (Requires authentication)
+     * @apiParam {string=""} [password] Password that will be needed to view the image. Give a blank value to clear.
+     *      (Requires authentication)
+     * @apiParam {int} [albumId] An album that the image should be moved to. Give a blank value to remove from album.
+     *      (Requires authentication)
+     * @apiUse RequiresEditableImage
+     * @apiUse ImageSuccessResponse
      *
-     * @param Request $request
      * @param Image $image
+     * @param PasswordHasher $passwordHasher
      *
      * @return Response
      */
-    public function update(Request $request, Image $image)
+    public function update(Image $image, PasswordHasher $passwordHasher)
     {
         $this->requireEditableImage($image);
 
         $this->validate(
-            $request,
+            $this->request,
             [
-                'caption' => 'max:10',
-                'privacy' => 'integer|between:0,2',
-                'password' => 'required_if:privacy,2'
+                'title' => 'max:10',
+                'anonymous' => 'boolean',
+                'password' => '',
+                'sessionKey' => 'required_with:anonymous,password,albumId'
             ]
         );
 
-        if ($request->exists('caption')) {
-            $image->caption = $request->input('caption');
+        if ($this->request->exists('albumId')) {
+            if ($albumId = $this->request->input('albumId')) {
+                $this->validate(
+                    $this->request,
+                    [
+                        'albumId' => 'exists:albums,albumId,userId,'.$this->user->getId()
+                    ]
+                );
+                $image->albumId = $albumId;
+            } else {
+                $image->albumId = null;
+            }
         }
 
-        if ($request->exists('privacy')) {
-            $image->privacy = $request->input('privacy');
+        if ($this->request->exists('title')) {
+            $image->title = $this->request->input('title');
         }
 
-        if ($request->exists('password')) {
-            $image->password = md5($request->input('password'));
+        if ($this->request->exists('anonymous')) {
+            $image->anonymous = (bool)$this->request->input('anonymous');
+        }
+
+        if ($this->request->exists('password')) {
+            if ($password = $this->request->input('password')) {
+                $image->password = $passwordHasher->generateHash($password);
+            } else {
+                $image->password = null;
+            }
         }
 
         $success = $image->isDirty() ? $image->save() : false;
 
-        return $this->successResponse(['success' => $success, 'image' => $image->fresh()]);
+        return $this->response(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
-     * @param Request $request
-     * @param Image $image
-     *
-     * @return Response
-     */
-    public function updateImage(Request $request, Image $image)
-    {
-        $this->requireEditableImage($image);
-
-        $this->validate(
-            $request,
-            [
-                'action' => 'required|string|in:rotate'
-            ]
-        );
-
-        switch ($request->input('action')) {
-            case 'rotate':
-                return $this->rotate($request, $image);
-                break;
-        }
-
-        throw new HttpException(400);
-    }
-
-    /**
-     * @api            {put} /images/{id}/image Rotate an Image
-     * @apiGroup       Manipulating Images
-     * @apiDescription Rotate an image clockwise or counter-clockwise.
-     * @apiParam {string=rotate} action Action to perform.
-     * @apiParam {int=90,180,270} degrees Degrees to rotate by.
-     * @apiParam {string=cw,ccw} [direction=cw] Direction to rotate in (clockwise or counter-clockwise respectively).
-     * @apiUse         RequiresEditableImage
-     * @apiUse         ImageSuccessResponse
-     *
-     * @param Request $request
-     * @param Image $image
-     *
-     * @return Response
-     */
-    public function rotate(Request $request, Image $image)
-    {
-        $this->validate(
-            $request,
-            [
-                'degrees' => 'required|integer|in:90,180,270',
-                'direction' => 'in:cw,ccw'
-            ]
-        );
-
-        $degrees = (int)$request->input('degrees');
-        $direction = $request->has('direction') ? $request->input('direction') : 'cw';
-
-        if ($direction === 'cw') {
-            $degrees = -$degrees;
-        }
-
-        $picture = $image->getPicture();
-
-        $picture->rotate($degrees);
-
-        $success = $image->saveWithNewPicture($picture);
-
-        return $this->successResponse(['success' => $success, 'image' => $image->fresh()]);
-    }
-
-    /**
-     * @api            {post} /images/{id}/crop Crop an Image
-     * @apiGroup       Manipulating Images
-     * @apiDescription Crops out a portion of the image.
-     *      See [Uncrop An Image](#api-Manipulating_Images-DeleteImagesIdCrop) to undo.
-     *      If the image is already cropped an error will be returned.
-     * @apiParam {int} width Width of the rectangular cutout.
-     * @apiParam {int} height Height of the rectangular cutout.
-     * @apiParam {int} [x=0] X-Coordinate of the top-left corner of the rectangular cutout.
-     * @apiParam {int} [y=0] Y-Coordinate of the top-left corner of the rectangular cutout.
-     * @apiUse         RequiresEditableImage
-     * @apiUse         ImageSuccessResponse
-     *
-     * @param Request $request
-     * @param Image $image
-     * @param FileManager $fileManager
-     *
-     * @return Response
-     */
-    public function crop(Request $request, Image $image, FileManager $fileManager)
-    {
-        $this->requireEditableImage($image);
-
-        if ($image->uncroppedfilename) {
-            return $this->error('Image is already cropped.');
-        }
-
-        $this->validate(
-            $request,
-            [
-                'width' => 'required|integer|between:1,' . $image->w,
-                'height' => 'required|integer|between:1,' . $image->h,
-                'x' => 'integer|between:0,' . $image->w,
-                'y' => 'integer|between:0,' . $image->h,
-            ]
-        );
-
-        // Backup uncropped image
-        $fileManager->renameFile('img/' . $image->filename, 'uncropped/' . $image->filename);
-        $image->uncroppedfilename = $image->filename;
-
-        $picture = $image->getPicture();
-
-        $width = $request->input('width');
-        $height = $request->input('height');
-
-        $xPos = $request->has('x') ? (int)$request->input('x') : 0;
-        $yPos = $request->has('y') ? (int)$request->input('y') : 0;
-
-        $picture->crop($width, $height, $xPos, $yPos);
-
-        $success = $image->saveWithNewPicture($picture);
-
-        return $this->successResponse(['success' => $success, 'image' => $image->fresh()]);
-    }
-
-    /**
-     * @api            {delete} /images/{id}/crop Uncrop an Image
-     * @apiGroup       Manipulating Images
-     * @apiDescription Revert the changes made by a prior crop operation. Returns an error if the image is not cropped.
-     * @apiUse         RequiresEditableImage
-     * @apiUse         ImageSuccessResponse
-     *
-     * @param Image $image
-     * @param FileManager $fileManager
-     *
-     * @return Response
-     */
-    public function uncrop(Image $image, FileManager $fileManager)
-    {
-        $this->requireEditableImage($image);
-
-        if (!$image->uncroppedfilename) {
-            return $this->error('Image is not cropped.');
-        }
-
-        $uncroppedPicture = $fileManager->getPicture('uncropped/' . $image->uncroppedfilename);
-
-        // Copy back uncropped image
-        $fileManager->renameFile(
-            'uncropped/' . $image->uncroppedfilename,
-            'img/' . $image->uncroppedfilename
-        );
-
-        $image->setMetadataFromPicture($uncroppedPicture);
-        $image->filename = $image->uncroppedfilename;
-        $image->uncroppedfilename = null;
-
-        $success = $image->save();
-        // Image will take care of deleting the old image. Should it though?
-
-        return $this->successResponse(['success' => $success, 'image' => $image->fresh()]);
-    }
-
-    /**
-     * @api            {delete} /images/{id} Delete an Image
-     * @apiGroup       Images
+     * @api {delete} /images/{imageId} Delete an Image
+     * @apiGroup Images
      * @apiDescription Delete an image.
-     * @apiUse         RequiresEditableImage
-     * @apiSuccessExample {json} Success Response
-     *               {
-     *                   "success": true
-     *               }
+     * @apiUse RequiresEditableImage
+     * @apiUse GenericSuccessResponse
      *
      * @param Image $image
      *
@@ -418,6 +265,241 @@ class ImagesController extends Base\ApiController
     public function destroy(Image $image)
     {
         $this->requireEditableImage($image);
-        return $this->successResponse(['success' => $image->delete()]);
+
+        return $this->response(['success' => $image->delete()]);
+    }
+
+    /**
+     * @api {get} /images/{imageId}/image View an Image
+     * @apiGroup Images
+     * @apiDescription Returns an HTTP 302 redirect to the image file.
+     * @apiUse RequiresViewableImage
+     * @apiParam {boolean=0,1} [display=0] Display the image now at this URL instead of redirecting.
+     *     This can be useful for testing but do not use it in production as it is not cached!
+     *
+     * @param Image $image
+     * @param FileManager $fileManager
+     *
+     * @return Response
+     */
+    public function showImage(Image $image, FileManager $fileManager)
+    {
+        $this->requireViewableModel($image);
+
+        $imageFile = $image->getImageFile();
+
+        if (!$imageFile) {
+            // This is a 500 instead of a 404 because we really should have the image...
+            throw new HttpException(500, "Unable to load the file for this image.");
+        }
+
+        if (Input::has('display')) {
+            $picture = $fileManager->getPictureForImageFile($imageFile);
+
+            return $picture->response();
+        }
+
+        return new RedirectResponse($imageFile->getUrl());
+    }
+
+    /**
+     * @param Image $image
+     * @param FileManager $fileManager
+     *
+     * @return Response
+     */
+    public function updateImage(Image $image, FileManager $fileManager)
+    {
+        $this->requireEditableImage($image);
+
+        $this->validate(
+            $this->request,
+            [
+                'action' => 'required|string|in:rotate'
+            ]
+        );
+
+        switch ($this->request->input('action')) {
+            case 'rotate':
+                return $this->rotate($image, $fileManager);
+                break;
+        }
+
+        throw new HttpException(400);
+    }
+
+    /**
+     * @api {put} /images/{imageId}/image Rotate an Image
+     * @apiGroup Manipulating Images
+     * @apiDescription Rotate an image clockwise or counter-clockwise.
+     * @apiParam {string=rotate} action Action to perform.
+     * @apiParam {int=90,180,270} degrees Degrees to rotate by.
+     * @apiParam {string=cw,ccw} [direction=cw] Direction to rotate in (clockwise or counter-clockwise respectively).
+     * @apiUse RequiresEditableImage
+     * @apiUse ImageSuccessResponse
+     *
+     * @param Image $image
+     * @param FileManager $fileManager
+     *
+     * @throws Exception
+     * @return Response
+     */
+    protected function rotate(Image $image, FileManager $fileManager)
+    {
+        $success = false;
+        $this->validate(
+            $this->request,
+            [
+                'degrees' => 'required|integer|in:90,180,270',
+                'direction' => 'in:cw,ccw'
+            ]
+        );
+
+        $degrees = (int)$this->request->input('degrees');
+        $direction = $this->request->has('direction') ? $this->request->input('direction') : 'cw';
+
+        if ($direction === 'cw') {
+            $degrees = -$degrees;
+        }
+
+        $picture = $fileManager->getPictureForImageFile($image->imageFile);
+
+        $picture->rotate($degrees);
+
+        if ($newImageFile = $fileManager->savePicture($picture)) {
+            $image->setImageFile($newImageFile);
+            $success = $image->save();
+        }
+
+        return $this->response(['success' => $success, 'image' => $image->fresh()]);
+    }
+
+    /**
+     * @api {get} /images/{imageId}/thumbnail View a Thumbnail
+     * @apiGroup Images
+     * @apiDescription Returns an HTTP 302 redirect to the thumbnail image file. The thumbnail is 200x200px
+     * @apiUse RequiresViewableImage
+     *
+     * @param Image $image
+     * @param FileManager $fileManager
+     *
+     * @return Response
+     */
+    public function showThumbnail(Image $image, FileManager $fileManager)
+    {
+        $this->requireViewableModel($image);
+
+        $thumbnailImageFile = $image->getThumbnailImageFile();
+
+        if (!$thumbnailImageFile) {
+            throw new NotFoundHttpException("There is no thumbnail for this image.");
+        }
+
+        if (Input::has('display')) {
+            $picture = $fileManager->getPictureForImageFile($thumbnailImageFile);
+
+            return $picture->response();
+        }
+
+        return new RedirectResponse($thumbnailImageFile->getUrl());
+    }
+
+    /**
+     * @api {post} /images/{imageId}/crop Crop an Image
+     * @apiGroup Manipulating Images
+     * @apiDescription Crops out a portion of the image.
+     *     See [Uncrop An Image](#api-Manipulating_Images-DeleteImagesIdCrop) to undo.
+     *     If the image is already cropped an error will be returned.
+     * @apiParam {int} width Width of the rectangular cutout.
+     * @apiParam {int} height Height of the rectangular cutout.
+     * @apiParam {int} [x=0] X-Coordinate of the top-left corner of the rectangular cutout.
+     * @apiParam {int} [y=0] Y-Coordinate of the top-left corner of the rectangular cutout.
+     * @apiUse RequiresEditableImage
+     * @apiUse ImageSuccessResponse
+     *
+     * @param Image $image
+     * @param FileManager $fileManager
+     *
+     * @throws Exception
+     * @return Response
+     */
+    public function storeCrop(Image $image, FileManager $fileManager)
+    {
+        $this->requireEditableImage($image);
+
+        if ($image->isCropped()) {
+            throw new HttpException(400, "Image is already cropped.");
+        }
+
+        $originalImageFile = $image->getImageFile();
+
+        // TODO: width needs to be less than original width - x.
+        $this->validate(
+            $this->request,
+            [
+                'width' => 'required|integer|between:1,'.$originalImageFile->width,
+                'height' => 'required|integer|between:1,'.$originalImageFile->height,
+                'x' => 'integer|between:0,'.($originalImageFile->width - 1),
+                'y' => 'integer|between:0,'.($originalImageFile->height - 1),
+            ]
+        );
+
+        // Backup uncropped image
+        $fileManager->moveFile($originalImageFile, FileManager::UNCROPPED_DIR);
+        $image->setUncroppedImageFile($originalImageFile);
+
+        $picture = $fileManager->getPictureForImageFile($originalImageFile);
+
+        $width = $this->request->input('width');
+        $height = $this->request->input('height');
+
+        $xPos = $this->request->has('x') ? (int)$this->request->input('x') : 0;
+        $yPos = $this->request->has('y') ? (int)$this->request->input('y') : 0;
+
+        $picture->crop($width, $height, $xPos, $yPos);
+
+        $newFile = $fileManager->savePicture($picture, FileManager::IMAGE_DIR, null, $originalImageFile);
+
+        $image->setImageFile($newFile);
+        $success = $image->save();
+
+        return $this->response(['success' => $success, 'image' => $image->fresh()]);
+    }
+
+    /**
+     * @api {delete} /images/{imageId}/crop Uncrop an Image
+     * @apiGroup Manipulating Images
+     * @apiDescription Revert the changes made by a prior crop operation.
+     *     Returns an error if the image is not cropped.
+     * @apiUse RequiresEditableImage
+     * @apiUse ImageSuccessResponse
+     *
+     * @param Image $image
+     * @param FileManager $fileManager
+     *
+     * @return Response
+     */
+    public function destroyCrop(Image $image, FileManager $fileManager)
+    {
+        $this->requireEditableImage($image);
+
+        if (!$image->isCropped()) {
+            throw new HttpException(400, "Image is not cropped.");
+        }
+
+        $uncroppedImageFile = $image->getUncroppedImageFile();
+        if (!$uncroppedImageFile) {
+            throw new HttpException(500, "Unable to find original (uncropped) image.");
+        }
+
+        // Copy back uncropped image
+        $fileManager->moveFile($uncroppedImageFile, FileManager::IMAGE_DIR);
+
+        $image->setImageFile($uncroppedImageFile);
+        $image->setUncroppedImageFile(null);
+
+        $success = $image->save();
+
+        return $this->response(['success' => $success, 'image' => $image->fresh()]);
     }
 }

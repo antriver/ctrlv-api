@@ -2,6 +2,8 @@
 
 namespace CtrlV\Models;
 
+use Auth;
+use Config;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
@@ -15,12 +17,13 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @property integer $facebookId
  * @property string $email
  * @property string $password
- * @property string $premiumUntil
+ * @property \Carbon\Carbon $premiumUntil
  * @property boolean $moderator
- * @property boolean $defaultPrivacy
+ * @property boolean $defaultAnonymous
  * @property string $defaultPassword
  * @property \Carbon\Carbon $createdAt
  * @property \Carbon\Carbon $updatedAt
+ * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Album[] $albums
  * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Image[] $images
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User whereUsername($value)
@@ -29,22 +32,54 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User wherePassword($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User wherePremiumUntil($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User whereModerator($value)
- * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User whereDefaultPrivacy($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User whereDefaultAnonymous($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User whereDefaultPassword($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User whereCreatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User whereUpdatedAt($value)
  */
 class User extends Base\BaseModel implements AuthenticatableContract, CanResetPasswordContract
 {
-    use Authenticatable, CanResetPassword;
+    use Authenticatable;
+    use CanResetPassword;
 
+    /**
+     * The database fields that should be casted to native types.
+     *
+     * @var array
+     */
     protected $casts = [
-        'id' => 'int',
+        'userId' => 'int',
+        'facebookId' => 'int',
         'moderator' => 'boolean',
-        'defaultPrivacy' => 'int',
+        'defaultAnonymous' => 'boolean',
     ];
 
-    public $primaryKey = 'id';
+    /**
+     * The database fields that should be casted to DateTime/Carbon objects.
+     *
+     * @var array
+     */
+    protected $dates = [
+        'premiumUntil',
+    ];
+
+    /**
+     * The fields that are not output in JSON.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password',
+        'facebookId',
+        'defaultPassword'
+    ];
+
+    /**
+     * The primary key for the model.
+     *
+     * @var string
+     */
+    public $primaryKey = 'userId';
 
     /**
      * The database table used by the model.
@@ -53,32 +88,31 @@ class User extends Base\BaseModel implements AuthenticatableContract, CanResetPa
      */
     protected $table = 'users';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'username',
-        'email',
-        'password'
-    ];
+    public function getUrl()
+    {
+        return Config::get('app.user_url').strtolower($this->username);
+    }
 
     /**
-     * The attributes excluded from the model's JSON form.
-     *
-     * @var array
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    protected $hidden = [
-        'password',
-        'fbID',
-        'defaultPassword'
-    ];
+    public function albums()
+    {
+        return $this->hasMany('\CtrlV\Models\Album', 'userId', 'userId');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function images()
+    {
+        return $this->hasMany('\CtrlV\Models\Image', 'userId', 'userId');
+    }
 
     /**
      * Return the properties in an array.
      *
-     * @param bool $authenticated
+     * @param bool $authenticated If this is the current logged in user we return more info.
      *
      * @return array
      */
@@ -86,19 +120,21 @@ class User extends Base\BaseModel implements AuthenticatableContract, CanResetPa
     {
         $array = parent::toArray();
 
-        if (!$authenticated) {
+        $array['url'] = $this->getUrl();
+
+        // Is the current user?
+        if (Auth::check() && Auth::user()->userId == $this->userId) {
+            // Any extra info for the account owner
+            $array['defaultPassword'] = !!$this->defaultPassword;
+        } else {
             unset($array['email']);
-            unset($array['defaultPrivacy']);
+            unset($array['defaultAnonymous']);
             unset($array['moderator']);
             unset($array['updatedAt']);
         }
 
         ksort($array);
-        return $array;
-    }
 
-    public function images()
-    {
-        return $this->hasMany('\CtrlV\Models\Image', 'userId', 'id');
+        return $array;
     }
 }

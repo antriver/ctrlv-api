@@ -126,7 +126,7 @@ class CachePurgeTest extends TestCase
         $this->assertContains('X-Cache-Status: HIT', $headers);
 
         // Delete from remote
-        $this->fileRepository->deleteFromRemote($filename);
+        $this->fileRepository->deleteRemoteFile($filename);
 
         $this->assertNotEquals(200, $this->getHttpResponseCode($s3Url), $s3Url);
 

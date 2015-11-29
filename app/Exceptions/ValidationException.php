@@ -11,7 +11,7 @@ class ValidationException extends HttpException
     {
         $errors = '';
         foreach ($validator->errors()->getMessages() as $key => $messages) {
-            $errors .= implode(' ', $messages) . ' ';
+            $errors .= implode(' ', $messages).' ';
         }
 
         parent::__construct(422, trim($errors));

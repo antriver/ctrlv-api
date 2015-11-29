@@ -11,6 +11,8 @@
 
     <div class="upload-status" id="upload-waiting">
         <div>
+        <span class="kbd kbd-ctrl">Ctrl</span>
+        <span class="kbd kbd-cmd">cmd &#8984;</span>
             <?php
             if ($canPaste) {
                 ?>
@@ -42,7 +44,10 @@
     <div class="upload-status out" id="upload-complete">
         <div>
             <h3>Uploaded!</h3>
-            <p><a href="#" class="restart-btn kbd"><i>&#10006;</i> Start Again</a> &nbsp; or &nbsp; <a href="#" class="btn kbd accept-btn"><i>&#10003;</i> Use This</a></p>
+            <p>
+                <a href="#" class="kbd" id="restart-btn"><i>&#10006;</i> Start Again</a> &nbsp;
+                <a href="#" target="_blank" class="kbd" id="view-btn">View on CtrlV.in</a> &nbsp;
+                <a href="#" class="kbd" id="accept-btn"><i>&#10003;</i> Use This</a></p>
         </div>
     </div>
 

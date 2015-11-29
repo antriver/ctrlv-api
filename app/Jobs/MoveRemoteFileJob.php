@@ -3,26 +3,30 @@
 namespace CtrlV\Jobs;
 
 use CtrlV\Libraries\FileManager;
+use CtrlV\Models\ImageFile;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
-class DeleteFileJob extends Job implements SelfHandling, ShouldQueue
+class MoveRemoteFileJob extends Job implements SelfHandling, ShouldQueue
 {
     use InteractsWithQueue;
     use SerializesModels;
 
-    private $path;
+    private $oldPath;
+    private $newPath;
 
     /**
      * Create a new job instance.
      *
-     * @param string $path
+     * @param string $oldPath
+     * @param string $newPath
      */
-    public function __construct($path)
+    public function __construct($oldPath, $newPath)
     {
-        $this->path = $path;
+        $this->oldPath = $oldPath;
+        $this->newPath = $newPath;
         parent::__construct();
     }
 
@@ -36,15 +40,9 @@ class DeleteFileJob extends Job implements SelfHandling, ShouldQueue
         $this->logger = $this->getJobLogger();
 
         $this->logger->debug(
-            "Deleting file {$this->path} attempt {$this->attempts()}"
+            "Moving remote file {$this->oldPath} to {$this->newPath} attempt {$this->attempts()}"
         );
 
-        $fileRepository->deleteFile($this->path);
-
-        $this->logger->debug(
-            "Deleting remote file {$this->path} attempt {$this->attempts()}"
-        );
-
-        $fileRepository->deleteRemoteFile($this->path);
+        $fileRepository->moveRemoteFile($this->oldPath, $this->newPath);
     }
 }

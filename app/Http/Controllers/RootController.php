@@ -6,6 +6,6 @@ class RootController extends Base\ApiController
 {
     public function getIndex()
     {
-        return $this->successResponse(['hello' => 'world']);
+        return $this->response(['hello' => 'world']);
     }
 }

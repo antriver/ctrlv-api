@@ -2,9 +2,9 @@
 
 namespace CtrlV\Http\Controllers;
 
+use Sinergi\BrowserDetector\Browser;
+use Sinergi\BrowserDetector\Os;
 use View;
-use Browser\Browser;
-use Browser\Os;
 
 class UploaderController extends Base\BaseController
 {
@@ -13,12 +13,14 @@ class UploaderController extends Base\BaseController
         $browser = new Browser;
         $os = new Os;
 
-        $isMac = $os->getName() === 'OS X';
+        $isMac = $os->getName() === Os::OSX;
 
         // We going to be optimistic and assume that browsers support pasting unless we know they don't
         $browserName = $browser->getName();
-        $crapBrowsers = ['Safari'];
-        $canPaste = !in_array($browserName, $crapBrowsers);
+        $crapBrowsers = [
+            //Browser::SAFARI
+        ];
+        $canPaste = !$os->isMobile() && !in_array($browserName, $crapBrowsers);
 
         return View::make(
             'uploader.index',
