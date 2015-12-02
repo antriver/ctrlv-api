@@ -157,12 +157,10 @@ class FileManager
 
     /**
      * Create a directory in the local filesystem if it does not already exist.
-
      *
-*@param string $path Relative to the localDir
-
+     * @param string $path Relative to the localDir
      *
-*@return boolean
+     * @return boolean
      */
     private function createLocalDirectory($path)
     {

@@ -27,7 +27,6 @@ abstract class Job
 
     protected function __construct()
     {
-
     }
 
     /**

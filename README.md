@@ -14,7 +14,7 @@ API for CtrlV.in - an image hosting site. Built in Laravel 5.
 ### v1.1
 * An image being anonymous is now a separate setting from it being password protected. (i.e. You can set a password on an image and still show your name on it.) Any existing images with a password have been automatically set to anonymous as this was the previous behaviour.
 * Image filenames are more unique.
-* Can give an `albumId`` when uploading an image so it goes straight into an album.
+* Can give an `albumId` when uploading an image so it goes straight into an album.
 
 ## Terminology (in the code)
 * **Picture**: Intervention\Image\Image object representing an actual picture.

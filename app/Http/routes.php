@@ -20,13 +20,12 @@ $router->group(
     [
         'prefix' => 'v1.1'
     ],
-    function(Router $router) {
+    function (Router $router) {
         $router->get('/', ['uses' => 'RootController@getIndex']);
 
         $router->get('uploader', ['uses' => 'UploaderController@getIndex']);
         $router->get('uploader/xdframe', ['uses' => 'UploaderController@getXdframe']);
         $router->get('uploader/blank', ['uses' => 'UploaderController@getBlank']);
-
 
         $router->post('albums', ['uses' => 'AlbumsController@store']);
         $router->get('albums/{album}', ['uses' => 'AlbumsController@show']);
@@ -62,6 +61,5 @@ $router->group(
 
         $router->get('users/{user}/albums', ['uses' => 'UsersController@indexAlbums']);
         $router->get('users/{user}/images', ['uses' => 'UsersController@indexImages']);
-
     }
 );

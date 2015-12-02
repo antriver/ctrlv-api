@@ -62,6 +62,5 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
             Image::where('imageFileID', $this->imageFile->getId())
                 ->update(['thumbnailImageFileId' => $thumbnailImageFile->getId()]);
         }
-
     }
 }

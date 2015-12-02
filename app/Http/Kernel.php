@@ -13,7 +13,6 @@ class Kernel extends HttpKernel
      */
     protected $middleware = [
         \Illuminate\Foundation\Http\Middleware\CheckForMaintenanceMode::class,
-
         /**
          * On Nginx add_header only works for 200, 204, 301, 302 and 304 status codes
          * unless we recompile with the headers_more module.
@@ -21,7 +20,6 @@ class Kernel extends HttpKernel
          * (This middleware only sets the headers as necessary. It does not set them for non-CORS requests)
          */
         \Barryvdh\Cors\HandleCors::class,
-
         // Sessions and cookies are not used
         //\CtrlV\Http\Middleware\EncryptCookies::class,
         //\Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,

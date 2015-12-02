@@ -368,6 +368,7 @@ class Image extends Base\BaseModel
         }
 
         $this->table = 'view_images';
+
         return $result;
     }
 
@@ -400,6 +401,7 @@ class Image extends Base\BaseModel
         $result = parent::delete();
 
         $this->table = 'view_images';
+
         return $result;
     }
 }
