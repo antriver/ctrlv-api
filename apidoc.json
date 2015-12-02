@@ -1,9 +1,9 @@
 {
     "name": "CtrlV.in API",
-    "version": "0.1.0",
+    "version": "1.1",
     "description": "",
     "title": "CtrlV.in API",
-    "url" : "https://api.ctrlv.in",
+    "url" : "https://api.ctrlv.in/v1.1",
     "template": {
         "withCompare": false
     },
