@@ -86,13 +86,9 @@ class PasswordHasher
      *
      * @return string
      */
-    public function generateHash($string, array $options = [])
+    public function generateHash($string)
     {
-        if (!isset($options['cost'])) {
-            $options['cost'] = $this->cost;
-        }
-
-        return password_hash($string, $this->algorithm, $options);
+        return password_hash($string, $this->algorithm, ['cost' => $this->cost]);
     }
 
     /**

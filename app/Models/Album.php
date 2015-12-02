@@ -77,7 +77,7 @@ class Album extends Base\BaseModel
      */
     public function images()
     {
-        return $this->hasMany('CtrlV\Models\Image', 'albumId', 'imageId');
+        return $this->hasMany('CtrlV\Models\Image', 'albumId', 'albumId');
     }
 
     /**

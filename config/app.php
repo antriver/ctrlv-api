@@ -155,7 +155,8 @@ return [
 
         Intervention\Image\ImageServiceProvider::class,
         Aws\Laravel\AwsServiceProvider::class,
-        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class
+        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+        Barryvdh\Cors\ServiceProvider::class,
 
     ],
 

@@ -49,10 +49,10 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
         $picture = $fileManager->getPictureForImageFile($this->imageFile);
         $filename = $this->imageFile->getFilename();
 
-        // Generate 400x400 thumbnail
+        // Generate 200x200 thumbnail
         $picture->fit(
-            400,
-            400,
+            200,
+            200,
             function (Constraint $constraint) {
                 $constraint->upsize();
             }

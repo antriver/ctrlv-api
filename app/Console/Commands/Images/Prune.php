@@ -27,14 +27,18 @@ class Prune extends Command
      */
     public function handle()
     {
+        die("Update me");
+        // TODO
+        /*
+        $directory = Config::get('app.data_dir');
         $cmd = <<<EOT
 # Delete jpg and png files that haven't been modified in the last 7 days
-find /var/www/ctrlv/img/ -type f -mtime +7 -regex '.*\.\(jpg\|png\)' -exec rm {} \; -print
+find {$directory} -type f -mtime +7 -regex '.*\.\(jpg\|png\)' -exec rm {} \; -print
 
 # Clear temporary crud
 find /var/www/ctrlv/tmp/ -maxdepth 1 -type f -mtime +1 -not -name ".*" -exec rm {} \; -print
 EOT;
 
-        print_r(shell_exec($cmd));
+        print_r(shell_exec($cmd));*/
     }
 }

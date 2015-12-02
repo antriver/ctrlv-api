@@ -15,7 +15,6 @@ class SessionsController extends Base\ApiController
      * @api {get} /sessions/{sessionKey} Get Session Info
      * @apiGroup User Sessions
      * @apiDescription Returns information about a user's session.
-     * @apiParam {string} sessionKey A user session key.
      *
      * @param UserSession $session
      *
@@ -42,8 +41,8 @@ class SessionsController extends Base\ApiController
      *
      * @param PasswordHasher $passwordHasher
      *
-     * @internal param Request $request
-     * @internal param Guard $auth
+     * @throws HttpException
+     * @return \Response
      */
     public function store(PasswordHasher $passwordHasher)
     {
@@ -89,5 +88,25 @@ class SessionsController extends Base\ApiController
         } else {
             throw new HttpException(401, 'Incorrect password.');
         }
+    }
+
+    /**
+     * @api {delete} /sessions/{sessionKey} End A Session (Logout)
+     * @apiGroup User Sessions
+     * @apiDescription Deletes a user's session.
+     *
+     * @param UserSession $session
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(UserSession $session)
+    {
+        $success = $session->delete();
+
+        return $this->response(
+            [
+                'success' => $success
+            ]
+        );
     }
 }

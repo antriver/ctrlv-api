@@ -10,7 +10,7 @@ class AlbumImagesController extends Base\ApiController
     /**
      * @api {get} /albums/{albumId}/images Get Album Images
      * @apiGroup Albums
-     * @apiDescription Gets images in the specified album. The results are paginated with 20 results per page.
+     * @apiDescription Gets images in the specified album. The results are paginated with 15 results per page.
      * @apiParam {int} [page=1] Results page number.
      *
      * @param Album $album
@@ -21,6 +21,8 @@ class AlbumImagesController extends Base\ApiController
     {
         $this->requireViewableModel($album);
 
+        // If we've got this far then the images inside this album are viewable too, so no need for further checks.
+
         $this->validate(
             $this->request,
             [
@@ -30,13 +32,9 @@ class AlbumImagesController extends Base\ApiController
 
         $results = $album->images()->limit(10)->with('imageFile')->with('thumbnailImageFile');
 
-        /*if (!$this->isCurrentUser($album)) {
-            $results->where('anonymous', 0)->whereNull('password');
-        }*/
-
         $results->orderBy('imageId', 'DESC');
 
-        $paginator = $results->paginate($this->resultsPerPage);
+        $paginator = $results->paginate($this->getResultsPerPage());
 
         return $this->response(
             $this->paginatorToArray($paginator, 'images')

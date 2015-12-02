@@ -8,7 +8,6 @@ use CtrlV\Models\Image;
 use CtrlV\Models\User;
 use CtrlV\Models\UserSession;
 use Illuminate\Auth\Guard;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Response;
@@ -115,7 +114,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 abstract class ApiController extends BaseController
 {
-    protected $resultsPerPage = 20;
+    protected $resultsPerPage = 15;
 
     public function __construct(Request $request, Guard $auth)
     {
@@ -205,8 +204,6 @@ abstract class ApiController extends BaseController
      *
      * @param Album|Image $model
      *
-     * @internal param Request $request
-     * @internal param Guard $guard
      * @return bool
      */
     protected function requireViewableModel($model)
@@ -270,5 +267,16 @@ abstract class ApiController extends BaseController
             'to' => $paginator->lastItem(),
             $dataKey => $paginator->items(),
         ];
+    }
+
+    protected function getResultsPerPage()
+    {
+        if ($perPage = intval($this->request->input('limit'))) {
+            if ($perPage > 0 && $perPage <= 100) {
+                return $perPage;
+            }
+        }
+
+        return 15;
     }
 }

@@ -53,6 +53,8 @@ class AlbumsCleanup extends Migration
         ");
 
         DB::statement("DROP TABLE image_tags");
+
+        DB::statement("UPDATE albums SET password = NULL WHERE password = ''");
     }
 
     /**

@@ -12,7 +12,7 @@ class Delete extends Command
      *
      * @var string
      */
-    protected $signature = 'images:delete {id}';
+    protected $signature = 'images:delete {imageId}';
 
     /**
      * The console command description.
@@ -28,7 +28,7 @@ class Delete extends Command
      */
     public function handle()
     {
-        $image = Image::findOrFail($this->argument('id'));
+        $image = Image::findOrFail($this->argument('imageId'));
         var_dump($image->delete());
     }
 }

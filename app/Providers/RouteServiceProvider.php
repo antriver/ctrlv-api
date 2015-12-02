@@ -22,8 +22,6 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(Router $router)
     {
-        //$router->pattern('image', '\n+');
-
         $router->model('album', '\CtrlV\Models\Album');
         $router->model('image', '\CtrlV\Models\Image');
         $router->model('session', '\CtrlV\Models\UserSession');
@@ -34,8 +32,6 @@ class RouteServiceProvider extends ServiceProvider
                 return \CtrlV\Models\User::whereUsername($username)->first();
             }
         );
-
-        //$router->model('user', '\CtrlV\Models\User');
 
         parent::boot($router);
     }

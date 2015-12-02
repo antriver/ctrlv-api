@@ -2,6 +2,7 @@
 
 ## What's New
 * An image being anonymous is now a separate setting from it being password protected. (i.e. You can set a password on an image and still show your name on it.) Any existing images with a password have been automatically set to anonymous as this was the previous behaviour.
+* Image filenames are more unique.
 
 ## Terminology
 *Picture: Intervention\Image\Image object.
@@ -15,7 +16,7 @@
 * PUT /albums/1/images/2 order=123 to reorder album images
 * Album privacy
 * Image vanity URLs / non-sequential IDs
-* Lock annotations. Change "uncropped" to "original". Replace uncrop/unannotate with revert to original. Allow recropping.
+* Lock annotations. Change "uncropped" to "original". Replace uncrop/un-annotate with revert to original. Allow re-cropping.
 * Batch requests for deleting images / adding to albums / removing from albums
 * OCR
 * API Keys

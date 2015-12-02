@@ -31,6 +31,7 @@ class ImageCleanup extends Migration
         DB::statement("ALTER TABLE images CHANGE COLUMN `date` `createdAt` DATETIME NULL DEFAULT NULL AFTER expiresAt");
 
         DB::statement("UPDATE images SET anonymous = 1 WHERE anonymous = 2");
+        DB::statement("UPDATE images SET password = NULL WHERE password = ''");
     }
 
     /**

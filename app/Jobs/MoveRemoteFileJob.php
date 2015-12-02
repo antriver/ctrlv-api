@@ -3,7 +3,6 @@
 namespace CtrlV\Jobs;
 
 use CtrlV\Libraries\FileManager;
-use CtrlV\Models\ImageFile;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Bus\SelfHandling;

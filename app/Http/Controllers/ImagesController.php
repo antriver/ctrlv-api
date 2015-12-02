@@ -8,7 +8,6 @@ use CtrlV\Libraries\PasswordHasher;
 use CtrlV\Libraries\PictureFactory;
 use CtrlV\Models\Image;
 use Exception;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\RedirectResponse;
 use Input;
 use Response;

@@ -119,8 +119,6 @@ class UsersController extends Base\ApiController
      * @param User $user
      * @param PasswordHasher $passwordHasher
      *
-     * @internal param Request $this->request
-     * @internal param Guard $auth
      * @return Response
      */
     public function update(User $user, PasswordHasher $passwordHasher)
@@ -177,7 +175,7 @@ class UsersController extends Base\ApiController
     /**
      * @api {get} /users/{username}/albums Get User's Images
      * @apiGroup Users
-     * @apiDescription Gets albums created by a user. The results are paginated with 20 results per page.
+     * @apiDescription Gets albums created by a user. The results are paginated with 15 results per page.
      * @apiParam {string} [sessionKey] A session key belonging to this user. Unless this is given anonymous
      *     and passworded albums will be omitted.
      * @apiParam {int} [page=1] Results page number.
@@ -205,7 +203,7 @@ class UsersController extends Base\ApiController
 
         $results->orderBy('title', 'ASC');
 
-        $paginator = $results->paginate($this->resultsPerPage);
+        $paginator = $results->paginate($this->getResultsPerPage());
 
         return $this->response(
             $this->paginatorToArray($paginator, 'albums')
@@ -215,7 +213,7 @@ class UsersController extends Base\ApiController
     /**
      * @api {get} /users/{username}/images Get User's Images
      * @apiGroup Users
-     * @apiDescription Gets images uploaded by a user. The results are paginated with 20 results per page.
+     * @apiDescription Gets images uploaded by a user. The results are paginated with 15 results per page.
      * @apiParam {string} [sessionKey] A session key belonging to this user. Unless this is given anonymous
      *     and passworded images will be omitted.
      * @apiParam {int} [page=1] Results page number.
@@ -242,7 +240,7 @@ class UsersController extends Base\ApiController
 
         $results->orderBy('imageId', 'DESC');
 
-        $paginator = $results->paginate($this->resultsPerPage);
+        $paginator = $results->paginate($this->getResultsPerPage());
 
         return $this->response(
             $this->paginatorToArray($paginator, 'images')

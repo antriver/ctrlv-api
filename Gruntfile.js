@@ -37,7 +37,8 @@ module.exports = function(grunt) {
             // Scripts used in the uploader popup
             'build-uploader-js': {
                 src: [
-                    'resources/assets/lib/ImagePaster.js',
+                    //'resources/assets/lib/ImagePaster.js',
+                    '../ctrlv-frontend/src/js/libraries/ImagePaster.js',
                     'resources/assets/uploader/js/uploader.js'
                 ],
                 dest: 'public/assets/build/' + timestamp + '/js/uploader.min.js'
@@ -87,7 +88,18 @@ module.exports = function(grunt) {
                     //'phantomjs compile.js'
                 ].join(' && ')
             }
-        }
+        },
+
+        // Display a notification when the build is ready
+        notify_hooks: {
+            options: {
+                enabled: true,
+                max_jshint_notifications: 5, // maximum number of notifications from jshint output
+                title: "CtrlV API Build", // defaults to the name in package.json, or will use project directory's name
+                success: true, // whether successful grunt executions should be notified automatically
+                duration: 2 // the duration of notification in seconds, for `notify-send only
+            }
+        },
 
     });
 
@@ -96,11 +108,14 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-shell');
+    grunt.loadNpmTasks('grunt-notify');
 
     grunt.registerTask('build', function() {
         grunt.task.run(['build-uploader']);
         grunt.task.run(['build-sdk']);
     });
+
+    grunt.task.run('notify_hooks');
 
     grunt.registerTask('build-uploader', function() {
 

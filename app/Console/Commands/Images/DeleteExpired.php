@@ -28,11 +28,12 @@ class DeleteExpired extends Command
      */
     public function handle()
     {
-        $images = Image::whereNotNull('expires_at')
-            ->where('expires_at', '<=', date('Y-m-d H:i:s'))->get();
+        /** @var Image[] $images */
+        $images = Image::whereNotNull('expiresAt')
+            ->where('expiresAt', '<=', date('Y-m-d H:i:s'))->get();
 
         foreach ($images as $image) {
-            echo "{$image->imageID}\tExpired at {$image->expires_at}".PHP_EOL;
+            echo "{$image->imageId}\tExpired at {$image->expiresAt}".PHP_EOL;
             $image->delete();
         }
     }

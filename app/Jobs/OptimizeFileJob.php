@@ -27,7 +27,6 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
      *
      * @param ImageFile $imageFile
      *
-     * @internal param string $relativePath
      * @return \CtrlV\Jobs\OptimizeFileJob
      */
     public function __construct(ImageFile $imageFile)

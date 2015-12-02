@@ -49,6 +49,7 @@ $router->delete('images/{image}/annotation', ['uses' => 'AnnotationController@de
 
 $router->post('sessions', ['uses' => 'SessionsController@store']);
 $router->get('sessions/{session}', ['uses' => 'SessionsController@show']);
+$router->delete('sessions/{session}', ['uses' => 'SessionsController@destroy']);
 
 $router->post('users', ['uses' => 'UsersController@store']);
 $router->get('users/{user}', ['uses' => 'UsersController@show']);

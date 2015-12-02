@@ -4,7 +4,6 @@ namespace CtrlV\Http\Controllers;
 
 use CtrlV\Libraries\PasswordHasher;
 use CtrlV\Models\Album;
-use CtrlV\Models\Image;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 

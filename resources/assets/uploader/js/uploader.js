@@ -36,7 +36,7 @@ $(document).on('click', '#restart-btn', function(e){
     e.preventDefault();
     $('.upload-status').addClass('out');
     $('#upload-waiting').removeClass('out');
-    $('#container').css('background-image','');
+    $('#uploader').css('background-image','');
     image = null;
 });
 
@@ -61,7 +61,7 @@ $(document).on('ctrlvuploadcomplete', function(e){
     var viewUrl = e.image.url;
     var imageUrl = e.image.image.url;
     $('#view-btn').attr('href', viewUrl);
-    $('#container').css('background-image','url(' + imageUrl + ')');
+    $('#uploader').css('background-image','url(' + imageUrl + ')');
 });
 
 $(document).on('ctrlvuploaderror', function(e){
@@ -72,11 +72,11 @@ $(document).on('ctrlvuploaderror', function(e){
 $(document).on('keyup', function(e) {
     // Highlighting keys when pressing
     if (e.which == 91 || e.which === 224) { // cmd
-        $('.kbd-cmd').removeClass('pressed');
+        $('.btn-cmd').removeClass('active');
     } else if (e.which == 17) { // ctrl
-        $('.kbd-ctrl').removeClass('pressed');
+        $('.btn-ctrl').removeClass('active');
     } else if (e.which == 86) { // v
-        $('.kbd-v').removeClass('pressed');
+        $('.btn-v').removeClass('active');
     }
 });
 
@@ -86,10 +86,10 @@ $(document).on('keydown', function(e) {
 
     // Highlighting keys when pressing
     if (e.which == 91 || e.which === 224) { // cmd (91 in
-        $('.kbd-cmd').addClass('pressed');
+        $('.btn-cmd').addClass('active');
     } else if (e.which == 17) { // ctrl
-        $('.kbd-ctrl').addClass('pressed');
+        $('.btn-ctrl').addClass('active');
     } else if (e.which == 86) { // v
-        $('.kbd-v').addClass('pressed');
+        $('.btn-v').addClass('active');
     }
 });

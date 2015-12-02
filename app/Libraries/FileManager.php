@@ -4,7 +4,6 @@ namespace CtrlV\Libraries;
 
 use AWS;
 use Config;
-use CtrlV\Jobs\DeleteRemoteFileJob;
 use CtrlV\Jobs\MoveRemoteFileJob;
 use CtrlV\Jobs\OptimizeFileJob;
 use CtrlV\Models\ImageFile;
@@ -157,39 +156,42 @@ class FileManager
     }
 
     /**
-     * Create a directory in the localDir if it does not already exist.
+     * Create a directory in the local filesystem if it does not already exist.
+
      *
-     * @param string $relativePath Relative to the localDir
+*@param string $path Relative to the localDir
+
      *
-     * @return boolean
+*@return boolean
      */
-    private function createLocalDirectory($relativePath)
+    private function createLocalDirectory($path)
     {
         clearstatcache();
-        if (is_dir($this->localDataDirectory.$relativePath)) {
+        if (is_dir($this->localDataDirectory.$path)) {
             return true;
         }
 
-        return mkdir($this->localDataDirectory.$relativePath, 0777, true); // true = make intermediate directories
+        return mkdir($this->localDataDirectory.$path, 0777, true); // true = make intermediate directories
     }
 
     /**
      * Generate a directory and filename to save an image as.
      *
      * @param string $extension
-     * @param string $prefix
+     * @param string $suffix
      *
-     * @return string yy/mm/dd/{$prefix}-filename.{$extension}
+     * @return string 9152/1501/d8ca/8232{$suffix}{.$extension}
      */
-    private function generateFilename($extension = 'jpg', $prefix = '')
+    private function generateFilename($extension = 'jpg', $suffix = '')
     {
-        $directory = date('y/m/d').'/';
+        $filename = bin2hex(openssl_random_pseudo_bytes(12));
+        $filename = str_split($filename, 3);
+        $filename = implode('/', array_slice($filename, 0, 4)).implode('', array_slice($filename, 4));
 
-        $filename = $directory;
-        if ($prefix) {
-            $filename .= $prefix.'-';
+        if ($suffix) {
+            $filename .= $suffix;
         }
-        $filename .= uniqid();
+
         if ($extension) {
             $filename .= '.'.$extension;
         }

@@ -363,6 +363,7 @@ class Image extends Base\BaseModel
         }
 
         if ($generateNewThumbnail && $imageFile = ImageFile::find($this->imageFileId)) {
+            /** @var ImageFile $imageFile */
             $this->dispatch(new MakeThumbnailJob($imageFile));
         }
 
