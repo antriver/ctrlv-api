@@ -16,17 +16,18 @@ use Illuminate\Routing\Router;
 | and give it the controller to call when that URI is requested.
 |
 */
+
+$router->get('/', ['uses' => 'RootController@getIndex']);
+
+$router->get('uploader', ['uses' => 'UploaderController@getIndex']);
+$router->get('uploader/xdframe', ['uses' => 'UploaderController@getXdframe']);
+$router->get('uploader/blank', ['uses' => 'UploaderController@getBlank']);
+
 $router->group(
     [
         'prefix' => 'v1.1'
     ],
     function (Router $router) {
-        $router->get('/', ['uses' => 'RootController@getIndex']);
-
-        $router->get('uploader', ['uses' => 'UploaderController@getIndex']);
-        $router->get('uploader/xdframe', ['uses' => 'UploaderController@getXdframe']);
-        $router->get('uploader/blank', ['uses' => 'UploaderController@getBlank']);
-
         $router->post('albums', ['uses' => 'AlbumsController@store']);
         $router->get('albums/{album}', ['uses' => 'AlbumsController@show']);
         $router->put('albums/{album}', ['uses' => 'AlbumsController@update']);
