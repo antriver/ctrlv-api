@@ -6,7 +6,9 @@ use CtrlV\Http\Requests;
 use CtrlV\Libraries\FileManager;
 use CtrlV\Libraries\PasswordHasher;
 use CtrlV\Libraries\PictureFactory;
+use CtrlV\Models\Album;
 use CtrlV\Models\Image;
+use CtrlV\Models\User;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Input;
@@ -180,7 +182,17 @@ class ImagesController extends Base\ApiController
     {
         $this->requireViewableModel($image);
 
-        return $this->response(['image' => $image]);
+        $imageArray = $image->toArray();
+
+        if ($imageArray['albumId']) {
+            $imageArray['album'] = Album::find($imageArray['albumId']);
+        }
+
+        if ($imageArray['userId']) {
+            $imageArray['user'] = User::find($imageArray['userId']);
+        }
+
+        return $this->response(['image' => $imageArray]);
     }
 
     /**

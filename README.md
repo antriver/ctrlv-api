@@ -21,6 +21,7 @@ API for CtrlV.in - an image hosting site. Built in Laravel 5.
 * **Image**: Image metadata stored in the `images` table in the database.
 
 ## FIXME
+* If you spam requests to rotate image (for example) a bunch of images are created. Maybe an "in progress" flag on images?
 * What if jobs are queued for an image that gets deleted?
 
 ## TODO

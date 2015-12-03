@@ -40,6 +40,8 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
      *
      * @param FileManager $fileRepository
      * @param CacheManager $cacheManager
+     *
+     * @throws Exception
      */
     public function handle(FileManager $fileRepository, CacheManager $cacheManager)
     {
@@ -48,6 +50,11 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
         $this->logger->debug(
             "Optimizing file {$this->imageFile->getId()} {$this->imageFile->getPath()} attempt {$this->attempts()}"
         );
+
+        // Get a fresh copy from the DB (checks if it's deleted)
+        if (!$this->imageFile = $this->imageFile->fresh()) {
+            throw new Exception("ImageFile no longer exists.");
+        }
 
         $this->optimize();
 

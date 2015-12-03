@@ -2,6 +2,7 @@
 
 namespace CtrlV\Jobs;
 
+use Exception;
 use CtrlV\Models\Image;
 use CtrlV\Models\ImageFile;
 use CtrlV\Libraries\FileManager;
@@ -34,7 +35,7 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
      *
      * @param FileManager $fileManager
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function handle(FileManager $fileManager)
     {
@@ -44,6 +45,11 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
             "Generating thumbnail for image {$this->imageFile->getId()} {$this->imageFile->getPath()}"
             ." attempt {$this->attempts()}"
         );
+
+        // Get a fresh copy from the DB (checks if it's deleted)
+        if (!$this->imageFile = $this->imageFile->fresh()) {
+            throw new Exception("ImageFile no longer exists.");
+        }
 
         // Get full size image
         $picture = $fileManager->getPictureForImageFile($this->imageFile);
