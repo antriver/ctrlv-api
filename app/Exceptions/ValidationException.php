@@ -3,17 +3,11 @@
 namespace CtrlV\Exceptions;
 
 use Illuminate\Validation\Validator;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class ValidationException extends HttpException
+class ValidationException extends InputException
 {
     public function __construct(Validator $validator)
     {
-        $errors = '';
-        foreach ($validator->errors()->getMessages() as $key => $messages) {
-            $errors .= implode(' ', $messages).' ';
-        }
-
-        parent::__construct(422, trim($errors));
+        parent::__construct(422, $validator->errors()->getMessages());
     }
 }

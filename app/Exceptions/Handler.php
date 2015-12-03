@@ -59,6 +59,10 @@ class Handler extends ExceptionHandler
             'success' => false
         ];
 
+        if (method_exists($e, 'getMessages')) {
+            $response['messages'] = $e->getMessages();
+        }
+
         return Response::json($response, $status);
     }
 }

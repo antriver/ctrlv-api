@@ -2,12 +2,12 @@
 
 namespace CtrlV\Http\Controllers;
 
+use CtrlV\Exceptions\InputException;
 use CtrlV\Http\Requests;
 use CtrlV\Libraries\PasswordHasher;
 use CtrlV\Models\User;
 use CtrlV\Models\UserSession;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class SessionsController extends Base\ApiController
 {
@@ -60,7 +60,12 @@ class SessionsController extends Base\ApiController
         /** @var User $user */
         $user = User::whereUsername($username)->first();
         if (!$user) {
-            throw new NotFoundHttpException("Couldn't find a user with that username.");
+            throw new InputException(
+                404,
+                [
+                    'username' => ["Couldn't find a user with that username."]
+                ]
+            );
         }
 
         if ($passwordHasher->verify($password, $user, 'password')) {
@@ -86,7 +91,12 @@ class SessionsController extends Base\ApiController
                 ]
             );
         } else {
-            throw new HttpException(401, 'Incorrect password.');
+            throw new InputException(
+                401,
+                [
+                    'password' => ["That password is not correct."]
+                ]
+            );
         }
     }
 
