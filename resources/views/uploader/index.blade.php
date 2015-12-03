@@ -54,7 +54,7 @@
 if ($canPaste) {
     ?>
     <script>
-    var imagePaster = new ImagePaster('/images');
+    var imagePaster = new ImagePaster('/v1.1/images');
     </script>
     <?php
 }
