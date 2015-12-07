@@ -15,6 +15,7 @@ API for CtrlV.in - an image hosting site. Built in Laravel 5.
 * An image being anonymous is now a separate setting from it being password protected. (i.e. You can set a password on an image and still show your name on it.) Any existing images with a password have been automatically set to anonymous as this was the previous behaviour.
 * Image filenames are more unique.
 * Can give an `albumId` when uploading an image so it goes straight into an album.
+* You can now crop an image multiple times (i.e. you can crop the cropped version). Changed 'uncropped' image to 'original' image. Removed 'uncrop image' endpoint and replaced with 'revert image'.
 
 ## Terminology (in the code)
 * **Picture**: Intervention\Image\Image object representing an actual picture.
@@ -35,7 +36,7 @@ API for CtrlV.in - an image hosting site. Built in Laravel 5.
 
 ## Running The Queue
 ```bash
-sudo -u www-data php artisan queue:listen --tries=3 --sleep=0 -vvv --timeout=600
+sudo -u www-data php artisan queue:listen --tries=1 --sleep=0 -vvv --timeout=600
 ```
 
 ## Generate API Doc

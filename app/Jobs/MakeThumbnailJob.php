@@ -43,7 +43,8 @@ class MakeThumbnailJob extends Job implements SelfHandling, ShouldQueue
 
         $this->logger->debug(
             "Generating thumbnail for image {$this->imageFile->getId()} {$this->imageFile->getPath()}"
-            ." attempt {$this->attempts()}"
+            ." attempt {$this->attempts()}",
+            $this->imageFile->toArray()
         );
 
         // Get a fresh copy from the DB (checks if it's deleted)

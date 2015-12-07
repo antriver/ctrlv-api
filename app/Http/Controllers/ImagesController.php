@@ -326,17 +326,65 @@ class ImagesController extends Base\ApiController
         $this->validate(
             $this->request,
             [
-                'action' => 'required|string|in:rotate'
+                'action' => 'required|string|in:rotate,revert'
             ]
         );
 
         switch ($this->request->input('action')) {
+            case 'revert':
+                return $this->revert($image, $fileManager);
+                break;
             case 'rotate':
                 return $this->rotate($image, $fileManager);
                 break;
         }
 
         throw new HttpException(400);
+    }
+
+    /**
+     * @api {put} /images/{imageId}/image Revert an Image
+     * @apiGroup Manipulating Images
+     * @apiDescription Revert the changes made by a prior crop/annotate operation.
+     *     Returns an error if the image is not altered.
+     *     This does not undo rotation - you can rotate it back to the original orientation.
+     * @apiParam {string=revert} action Action to perform.
+     * @apiUse RequiresEditableImage
+     * @apiUse ImageSuccessResponse
+     *
+     * @param Image $image
+     * @param FileManager $fileManager
+     *
+     * @return Response
+     */
+    protected function revert(Image $image, FileManager $fileManager)
+    {
+        $this->requireEditableImage($image);
+
+       if ($image->operationInProgress) {
+            throw new HttpException(409, "Another operation is currently in progress for this image.");
+        }
+        $image->operationInProgress = true;
+        $image->save();
+
+        if (!$image->hasOriginal()) {
+            throw new HttpException(400, "Image is not altered.");
+        }
+
+        $originalImageFile = $image->getUncroppedImageFile();
+        if (!$originalImageFile) {
+            throw new HttpException(500, "Unable to find original image.");
+        }
+
+        // Copy back uncropped image
+        $fileManager->moveFile($originalImageFile, FileManager::IMAGE_DIR);
+
+        $image->setImageFile($originalImageFile);
+        $image->setUncroppedImageFile(null);
+        $image->operationInProgress = false;
+        $success = $image->save();
+
+        return $this->response(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
@@ -366,6 +414,12 @@ class ImagesController extends Base\ApiController
             ]
         );
 
+        if ($image->operationInProgress) {
+            throw new HttpException(409, "Another operation is currently in progress for this image.");
+        }
+        $image->operationInProgress = true;
+        $image->save();
+
         $degrees = (int)$this->request->input('degrees');
         $direction = $this->request->has('direction') ? $this->request->input('direction') : 'cw';
 
@@ -379,6 +433,7 @@ class ImagesController extends Base\ApiController
 
         if ($newImageFile = $fileManager->savePicture($picture)) {
             $image->setImageFile($newImageFile);
+            $image->operationInProgress = false;
             $success = $image->save();
         }
 
@@ -438,9 +493,9 @@ class ImagesController extends Base\ApiController
     {
         $this->requireEditableImage($image);
 
-        if ($image->isCropped()) {
+        /*if ($image->hasOriginal()) {
             throw new HttpException(400, "Image is already cropped.");
-        }
+        }*/
 
         $originalImageFile = $image->getImageFile();
 
@@ -455,9 +510,17 @@ class ImagesController extends Base\ApiController
             ]
         );
 
-        // Backup uncropped image
-        $fileManager->moveFile($originalImageFile, FileManager::UNCROPPED_DIR);
-        $image->setUncroppedImageFile($originalImageFile);
+        if ($image->operationInProgress) {
+            throw new HttpException(409, "Another operation is currently in progress for this image.");
+        }
+        $image->operationInProgress = true;
+        $image->save();
+
+        if (!$image->hasOriginal()) {
+            // Backup uncropped image
+            $fileManager->moveFile($originalImageFile, FileManager::UNCROPPED_DIR);
+            $image->setUncroppedImageFile($originalImageFile);
+        }
 
         $picture = $fileManager->getPictureForImageFile($originalImageFile);
 
@@ -472,6 +535,7 @@ class ImagesController extends Base\ApiController
         $newFile = $fileManager->savePicture($picture, FileManager::IMAGE_DIR, null, $originalImageFile);
 
         $image->setImageFile($newFile);
+        $image->operationInProgress = false;
         $success = $image->save();
 
         return $this->response(['success' => $success, 'image' => $image->fresh()]);
@@ -494,7 +558,7 @@ class ImagesController extends Base\ApiController
     {
         $this->requireEditableImage($image);
 
-        if (!$image->isCropped()) {
+        if (!$image->hasOriginal()) {
             throw new HttpException(400, "Image is not cropped.");
         }
 
@@ -503,12 +567,18 @@ class ImagesController extends Base\ApiController
             throw new HttpException(500, "Unable to find original (uncropped) image.");
         }
 
+        if ($image->operationInProgress) {
+            throw new HttpException(409, "Another operation is currently in progress for this image.");
+        }
+        $image->operationInProgress = true;
+        $image->save();
+
         // Copy back uncropped image
         $fileManager->moveFile($uncroppedImageFile, FileManager::IMAGE_DIR);
 
         $image->setImageFile($uncroppedImageFile);
         $image->setUncroppedImageFile(null);
-
+        $image->operationInProgress = false;
         $success = $image->save();
 
         return $this->response(['success' => $success, 'image' => $image->fresh()]);

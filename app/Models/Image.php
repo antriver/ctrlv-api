@@ -26,6 +26,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
  * @property string $password
  * @property integer $views
  * @property integer $batchId
+ * @property boolean $operationInProgress
  * @property \Carbon\Carbon $expiresAt
  * @property \Carbon\Carbon $createdAt
  * @property \Carbon\Carbon $updatedAt
@@ -49,6 +50,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image wherePassword($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereViews($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereBatchId($value)
+ * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereOperationInProgress($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereExpiresAt($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereCreatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereUpdatedAt($value)
@@ -214,7 +216,7 @@ class Image extends Base\BaseModel
      *
      * @return bool
      */
-    public function isCropped()
+    public function hasOriginal()
     {
         return !is_null($this->uncroppedImageFileId);
     }
@@ -277,7 +279,7 @@ class Image extends Base\BaseModel
         // Image belongs to the current user?
         if (Auth::check() && Auth::user()->userId == $this->userId) {
             // Any extra info for the image owner
-            $array['isCropped'] = $this->isCropped();
+            $array['hasOriginal'] = $this->hasOriginal();
             $array['anonymous'] = $this->anonymous;
         } else {
             if ($this->anonymous) {

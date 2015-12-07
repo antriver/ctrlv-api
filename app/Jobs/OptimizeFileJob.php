@@ -48,7 +48,8 @@ class OptimizeFileJob extends Job implements SelfHandling, ShouldQueue
         $this->logger = $this->getJobLogger();
 
         $this->logger->debug(
-            "Optimizing file {$this->imageFile->getId()} {$this->imageFile->getPath()} attempt {$this->attempts()}"
+            "Optimizing file {$this->imageFile->getId()} {$this->imageFile->getPath()} attempt {$this->attempts()}",
+            $this->imageFile->toArray()
         );
 
         // Get a fresh copy from the DB (checks if it's deleted)

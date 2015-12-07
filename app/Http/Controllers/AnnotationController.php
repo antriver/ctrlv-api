@@ -66,6 +66,12 @@ class AnnotationController extends Base\ApiController
             ]
         );
 
+        if ($image->operationInProgress) {
+            throw new HttpException(409, "Another operation is currently in progress for this image.");
+        }
+        $image->operationInProgress = true;
+        $image->save();
+
         $annotationPicture = $pictureFactory->createFromBase64String($this->request->input('base64'));
 
         $imageFile = $image->getImageFile();
@@ -86,6 +92,7 @@ class AnnotationController extends Base\ApiController
         $annotationImageFile = $fileManager->savePicture($annotationPicture, 'annotation');
 
         $image->setAnnotationImageFile($annotationImageFile);
+        $image->operationInProgress = false;
         $success = $image->save();
 
         return $this->response(['success' => $success, 'image' => $image->fresh()]);
@@ -112,8 +119,15 @@ class AnnotationController extends Base\ApiController
             throw new HttpException(400, "This image does not have an annotation.");
         }
 
+        if ($image->operationInProgress) {
+            throw new HttpException(409, "Another operation is currently in progress for this image.");
+        }
+        $image->operationInProgress = true;
+        $image->save();
+
         $image->setAnnotationImageFile(null);
         $annotationImageFile->delete();
+        $image->operationInProgress = false;
         $success = $image->save();
 
         return $this->response(['success' => $success, 'image' => $image->fresh()]);

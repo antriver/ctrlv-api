@@ -39,7 +39,8 @@ class MoveRemoteFileJob extends Job implements SelfHandling, ShouldQueue
         $this->logger = $this->getJobLogger();
 
         $this->logger->debug(
-            "Moving remote file {$this->oldPath} to {$this->newPath} attempt {$this->attempts()}"
+            "Moving remote file {$this->oldPath} to {$this->newPath} attempt {$this->attempts()}",
+            $this->imageFile->toArray()
         );
 
         $fileRepository->moveRemoteFile($this->oldPath, $this->newPath);
