@@ -23,7 +23,9 @@ Vagrant.configure("2") do |config|
         ctrlvapi.vm.synced_folder "../ctrlv-frontend", "/var/www/ctrlv-frontend",  owner: "www-data", group: "www-data",  mount_options: ["dmode=777,fmode=777"]
 
         ctrlvapi.vm.hostname = "api.vagrant.ctrlv.in"
-        ctrlvapi.hostsupdater.aliases = ["img.vagrant.ctrlv.in", "vagrant.ctrlv.in", "assets.vagrant.ctrlv.in"]
+        ctrlvapi.hostsupdater.aliases = ["img.vagrant.ctrlv.in", "vagrant.ctrlv.in"]
+
+        ctrlvapi.ssh.private_key_path = "~/.ssh/id_rsa"
 
         ctrlvapi.vm.provider "virtualbox" do |vbox|
             vbox.name = "api.ctrlv.vagrant"

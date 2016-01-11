@@ -51,6 +51,8 @@ $router->group(
         $router->get('images/{image}/annotation', ['uses' => 'AnnotationController@show']);
         $router->delete('images/{image}/annotation', ['uses' => 'AnnotationController@destroy']);
 
+        $router->get('images/{image}/text', ['uses' => 'ImageTextController@show']);
+
         $router->post('sessions', ['uses' => 'SessionsController@store']);
         $router->get('sessions/{session}', ['uses' => 'SessionsController@show']);
         $router->delete('sessions/{session}', ['uses' => 'SessionsController@destroy']);
