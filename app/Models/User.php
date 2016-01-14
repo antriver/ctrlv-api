@@ -12,17 +12,17 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 /**
  * CtrlV\Models\User
  *
- * @property integer $userId
- * @property string $username
- * @property integer $facebookId
- * @property string $email
- * @property string $password
- * @property \Carbon\Carbon $premiumUntil
- * @property boolean $moderator
- * @property boolean $defaultAnonymous
- * @property string $defaultPassword
- * @property \Carbon\Carbon $createdAt
- * @property \Carbon\Carbon $updatedAt
+ * @property integer                                                             $userId
+ * @property string                                                              $username
+ * @property integer                                                             $facebookId
+ * @property string                                                              $email
+ * @property string                                                              $password
+ * @property \Carbon\Carbon                                                      $premiumUntil
+ * @property boolean                                                             $moderator
+ * @property boolean                                                             $defaultAnonymous
+ * @property string                                                              $defaultPassword
+ * @property \Carbon\Carbon                                                      $createdAt
+ * @property \Carbon\Carbon                                                      $updatedAt
  * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Album[] $albums
  * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Image[] $images
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\User whereUserId($value)
@@ -71,7 +71,7 @@ class User extends Base\BaseModel implements AuthenticatableContract, CanResetPa
     protected $hidden = [
         'password',
         'facebookId',
-        'defaultPassword'
+        'defaultPassword',
     ];
 
     /**

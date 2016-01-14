@@ -34,7 +34,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 
 /**
- * @apiDefine PaginatedAlbumResponse
+ * @apiDefine         PaginatedAlbumResponse
  * @apiSuccessExample Success Response
  *     {
  *       "total": 2,
@@ -69,7 +69,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 
 /**
- * @apiDefine PaginatedImageResponse
+ * @apiDefine         PaginatedImageResponse
  * @apiSuccessExample Success Response
  *     {
  *       "total": 60,
@@ -182,7 +182,7 @@ abstract class ApiController extends BaseController
         $this->validate(
             $this->request,
             [
-                'sessionKey' => 'required|string'
+                'sessionKey' => 'required|string',
             ]
         );
 
@@ -232,7 +232,7 @@ abstract class ApiController extends BaseController
      * Ensure that the given Image is editable by the current visitor
      *
      * @param Image $image
-     * @param bool $checkImageKey
+     * @param bool  $checkImageKey
      *
      * @return bool
      */

@@ -29,7 +29,7 @@ class CacheManager
 
         return [
             'nginx' => $nginxResult,
-            'cloudflare' => $cloudFlareResult
+            'cloudflare' => $cloudFlareResult,
         ];
     }
 
@@ -50,7 +50,7 @@ class CacheManager
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_NOBODY, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('purge-cache: 1'));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ['purge-cache: 1']);
         curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
 
         $result = curl_exec($ch);
@@ -63,10 +63,10 @@ class CacheManager
         $cf = new CloudFlare(Config::get('services.cloudflare.email'), Config::get('services.cloudflare.key'));
 
         $response = $cf->zone_file_purge(
-            array(
+            [
                 'z' => Config::get('services.cloudflare.domain'),
-                'url' => $url
-            )
+                'url' => $url,
+            ]
         );
 
         return $response['result'] == 'success';

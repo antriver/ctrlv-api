@@ -32,7 +32,7 @@ abstract class BaseController extends Controller
 
     /**
      * @param Request $request
-     * @param Guard $auth
+     * @param Guard   $auth
      */
     public function __construct(Request $request, Guard $auth)
     {
@@ -45,9 +45,9 @@ abstract class BaseController extends Controller
      * Validate the given request with the given rules.
      *
      * @param \Illuminate\Http\Request $request
-     * @param array $rules
-     * @param array $messages
-     * @param array $customAttributes
+     * @param array                    $rules
+     * @param array                    $messages
+     * @param array                    $customAttributes
      *
      * @throws ValidationException
      */

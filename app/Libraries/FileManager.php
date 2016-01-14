@@ -70,9 +70,9 @@ class FileManager
      * Save an Picture object to the file system.
      * Runs OptimizeFileJob on the file after it is saved.
      *
-     * @param Picture $picture
-     * @param string $directory One of the *_DIR constants.
-     * @param string $filename
+     * @param Picture        $picture
+     * @param string         $directory One of the *_DIR constants.
+     * @param string         $filename
      * @param ImageFile|null $originalImageFile
      *
      * @throws Exception
@@ -141,7 +141,7 @@ class FileManager
      * Save a picture in the local filesystem.
      *
      * @param Picture $picture
-     * @param string $relativePath Relative to localDir
+     * @param string  $relativePath Relative to localDir
      *
      * @return boolean
      */
@@ -220,7 +220,7 @@ class FileManager
                 'Expires' => $this->s3ExpiresHeader,
                 'Key' => $path,
                 'SourceFile' => $this->localDataDirectory.$path,
-                'StorageClass' => $storageClass
+                'StorageClass' => $storageClass,
             ]
         );
 
@@ -234,7 +234,7 @@ class FileManager
      * Copy from remote storage to local file.
      * Returns the contents of the file
      *
-     * @param string $relativePath
+     * @param string  $relativePath
      * @param boolean $returnContents If true returns the contents of the file otherwise returns a boolean
      *
      * @return string|bool

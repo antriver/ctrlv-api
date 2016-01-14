@@ -26,7 +26,7 @@ class UploaderController extends Base\BaseController
             'uploader.index',
             [
                 'isMac' => $isMac,
-                'canPaste' => $canPaste
+                'canPaste' => $canPaste,
             ]
         );
     }

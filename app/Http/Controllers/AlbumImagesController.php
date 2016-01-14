@@ -8,8 +8,8 @@ use Illuminate\Http\Response;
 class AlbumImagesController extends Base\ApiController
 {
     /**
-     * @api {get} /albums/{albumId}/images Get Album Images
-     * @apiGroup Albums
+     * @api            {get} /albums/{albumId}/images Get Album Images
+     * @apiGroup       Albums
      * @apiDescription Gets images in the specified album. The results are paginated with 15 results per page.
      * @apiParam {int} [page=1] Results page number.
      *
@@ -26,7 +26,7 @@ class AlbumImagesController extends Base\ApiController
         $this->validate(
             $this->request,
             [
-                'page' => 'int|min:1'
+                'page' => 'int|min:1',
             ]
         );
 

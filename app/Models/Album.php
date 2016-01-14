@@ -9,15 +9,15 @@ use Illuminate\Database\DatabaseManager;
 /**
  * CtrlV\Models\Album
  *
- * @property integer $albumId
- * @property integer $userId
- * @property string $title
- * @property boolean $anonymous
- * @property string $password
- * @property \Carbon\Carbon $createdAt
- * @property \Carbon\Carbon $updatedAt
+ * @property integer                                                             $albumId
+ * @property integer                                                             $userId
+ * @property string                                                              $title
+ * @property boolean                                                             $anonymous
+ * @property string                                                              $password
+ * @property \Carbon\Carbon                                                      $createdAt
+ * @property \Carbon\Carbon                                                      $updatedAt
  * @property-read \Illuminate\Database\Eloquent\Collection|\CtrlV\Models\Image[] $images
- * @property-read \CtrlV\Models\User $user
+ * @property-read \CtrlV\Models\User                                             $user
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album whereAlbumId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Album whereTitle($value)
@@ -36,7 +36,7 @@ class Album extends Base\BaseModel
     protected $casts = [
         'albumId' => 'int',
         'userId' => 'int',
-        'anonymous' => 'bool'
+        'anonymous' => 'bool',
     ];
 
     /**
@@ -47,7 +47,7 @@ class Album extends Base\BaseModel
     protected $hidden = [
         'anonymous',
         'password',
-        'pivot'
+        'pivot',
     ];
 
     /**
@@ -89,7 +89,7 @@ class Album extends Base\BaseModel
     }
 
     /**
-     * @param Image $image
+     * @param Image           $image
      * @param DatabaseManager $db
      *
      * @return bool
@@ -100,7 +100,7 @@ class Album extends Base\BaseModel
             "SELECT `albumId` FROM `album_images` WHERE `albumId` = ? AND `imageId` = ?",
             [
                 $this->getId(),
-                $image->getId()
+                $image->getId(),
             ]
         );
     }

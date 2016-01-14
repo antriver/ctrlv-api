@@ -17,10 +17,10 @@ class PasswordHasher
     /**
      * Check if a password is correct.
      *
-     * @param string $string
+     * @param string    $string
      * @param BaseModel $model
-     * @param string $column
-     * @param string $oldFormat What format was the saved value in the old version?
+     * @param string    $column
+     * @param string    $oldFormat What format was the saved value in the old version?
      *
      * @return bool
      */
@@ -94,9 +94,9 @@ class PasswordHasher
     /**
      * Updates the stored password to a new hash if required.
      *
-     * @param string $string
+     * @param string    $string
      * @param BaseModel $model
-     * @param string $column
+     * @param string    $column
      */
     private function updatedSavedHash($string, BaseModel $model, $column)
     {

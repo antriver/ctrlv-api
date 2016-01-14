@@ -21,13 +21,13 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class UsersController extends Base\ApiController
 {
     /**
-     * @api {post} /users Create a User
-     * @apiGroup Users
+     * @api            {post} /users Create a User
+     * @apiGroup       Users
      * @apiDescription Register a new user account.
      * @apiParam {string} username A username for the user.
      * @apiParam {string} email A email address for the user.
      * @apiParam {string} password A password for the user. Minimum 3 characters.
-     * @apiUse UserSuccessResponse
+     * @apiUse         UserSuccessResponse
      *
      * @param PasswordHasher $passwordHasher
      *
@@ -40,7 +40,7 @@ class UsersController extends Base\ApiController
             [
                 'username' => 'required|unique:users,username',
                 'email' => 'required|unique:users,email',
-                'password' => 'required|min:3'
+                'password' => 'required|min:3',
             ]
         );
 
@@ -48,14 +48,14 @@ class UsersController extends Base\ApiController
             [
                 'username' => $this->request->input('username'),
                 'email' => $this->request->input('email'),
-                'password' => $passwordHasher->generateHash($this->request->input('password'))
+                'password' => $passwordHasher->generateHash($this->request->input('password')),
             ]
         );
 
         if ($user->save()) {
             return $this->response(
                 [
-                    'user' => $user->fresh()
+                    'user' => $user->fresh(),
                 ]
             );
         }
@@ -64,8 +64,8 @@ class UsersController extends Base\ApiController
     }
 
     /**
-     * @api {get} /users/{username} Get User Info
-     * @apiGroup Users
+     * @api            {get} /users/{username} Get User Info
+     * @apiGroup       Users
      * @apiDescription Get a user's account information.
      * @apiParam {string} [sessionKey] If a valid sessionKey for this user is given additional information is returned.
      * @apiSuccessExample {json} Success Response
@@ -104,8 +104,8 @@ class UsersController extends Base\ApiController
     }
 
     /**
-     * @api {put} /users/{username} Update User Info
-     * @apiGroup Users
+     * @api            {put} /users/{username} Update User Info
+     * @apiGroup       Users
      * @apiDescription Update a user's account information.
      * @apiParam {string} sessionKey A session key belonging to this user.
      * @apiParam {string} [username] A new username for the user.
@@ -114,9 +114,9 @@ class UsersController extends Base\ApiController
      * @apiParam {boolean=0,1} [defaultAnonymous=0] Display the username on images uploaded by this user?
      * @apiParam {string} [defaultPassword] A password that will be required to view newly uploaded images.
      *     (Can be changed per image after uploading, see "Update Image Info").
-     * @apiUse UserSuccessResponse
+     * @apiUse         UserSuccessResponse
      *
-     * @param User $user
+     * @param User           $user
      * @param PasswordHasher $passwordHasher
      *
      * @return Response
@@ -130,7 +130,7 @@ class UsersController extends Base\ApiController
             'email' => 'unique:users,email,'.$user->userId.',userId',
             'password' => 'min:3',
             'defaultAnonymous' => 'boolean',
-            'defaultPassword' => 'string'
+            'defaultPassword' => 'string',
         ];
 
         $this->validate(
@@ -167,19 +167,19 @@ class UsersController extends Base\ApiController
         return $this->response(
             [
                 'success' => $success,
-                'user' => $user->fresh()
+                'user' => $user->fresh(),
             ]
         );
     }
 
     /**
-     * @api {get} /users/{username}/albums Get User's Images
-     * @apiGroup Users
+     * @api            {get} /users/{username}/albums Get User's Images
+     * @apiGroup       Users
      * @apiDescription Gets albums created by a user. The results are paginated with 15 results per page.
      * @apiParam {string} [sessionKey] A session key belonging to this user. Unless this is given anonymous
      *     and passworded albums will be omitted.
      * @apiParam {int} [page=1] Results page number.
-     * @apiUse PaginatedAlbumResponse
+     * @apiUse         PaginatedAlbumResponse
      *
      * @param User $user
      *
@@ -190,7 +190,7 @@ class UsersController extends Base\ApiController
         $this->validate(
             $this->request,
             [
-                'page' => 'int|min:1'
+                'page' => 'int|min:1',
             ]
         );
 
@@ -211,13 +211,13 @@ class UsersController extends Base\ApiController
     }
 
     /**
-     * @api {get} /users/{username}/images Get User's Images
-     * @apiGroup Users
+     * @api            {get} /users/{username}/images Get User's Images
+     * @apiGroup       Users
      * @apiDescription Gets images uploaded by a user. The results are paginated with 15 results per page.
      * @apiParam {string} [sessionKey] A session key belonging to this user. Unless this is given anonymous
      *     and passworded images will be omitted.
      * @apiParam {int} [page=1] Results page number.
-     * @apiUse PaginatedImageResponse
+     * @apiUse         PaginatedImageResponse
      *
      * @param User $user
      *
@@ -228,7 +228,7 @@ class UsersController extends Base\ApiController
         $this->validate(
             $this->request,
             [
-                'page' => 'int|min:1'
+                'page' => 'int|min:1',
             ]
         );
 

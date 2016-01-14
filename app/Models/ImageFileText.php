@@ -5,11 +5,11 @@ namespace CtrlV\Models;
 /**
  * CtrlV\Models\ImageFileText
  *
- * @property integer $imageFileTextId
- * @property integer $imageFileId
- * @property string $text
- * @property \Carbon\Carbon $createdAt
- * @property \Carbon\Carbon $updatedAt
+ * @property integer                      $imageFileTextId
+ * @property integer                      $imageFileId
+ * @property string                       $text
+ * @property \Carbon\Carbon               $createdAt
+ * @property \Carbon\Carbon               $updatedAt
  * @property-read \CtrlV\Models\ImageFile $file
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageFileText whereImageFileTextId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageFileText whereImageFileId($value)

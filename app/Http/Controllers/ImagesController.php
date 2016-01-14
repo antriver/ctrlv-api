@@ -19,8 +19,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ImagesController extends Base\ApiController
 {
     /**
-     * @api {post} /images Create an Image
-     * @apiGroup Images
+     * @api            {post} /images Create an Image
+     * @apiGroup       Images
      * @apiDescription Store an image and return its metadata including a to view it.
      *     <br/>The image will be made anonymous if a `sessionKey` is given and the user's `defaultAnonymous`
      *     value is `true`.
@@ -40,7 +40,7 @@ class ImagesController extends Base\ApiController
      *       "imageKey": "2c9933ce51d082ec61a4a55e21cb9befabdca6a65635930fdd0891dbb78f68f2"
      *     }
      *
-     * @param FileManager $fileManager
+     * @param FileManager    $fileManager
      * @param PictureFactory $pictureFactory
      * @param PasswordHasher $passwordHasher
      *
@@ -54,7 +54,7 @@ class ImagesController extends Base\ApiController
             [
                 'base64' => 'required_without:file',
                 'file' => 'required_without:base64',
-                'sessionKey' => 'required_with:albumId'
+                'sessionKey' => 'required_with:albumId',
             ]
         );
 
@@ -65,7 +65,7 @@ class ImagesController extends Base\ApiController
             $this->validate(
                 $this->request,
                 [
-                    'albumId' => 'exists:albums,albumId,userId,'.$this->user->getId()
+                    'albumId' => 'exists:albums,albumId,userId,'.$this->user->getId(),
                 ]
             );
         }
@@ -96,7 +96,7 @@ class ImagesController extends Base\ApiController
                 'ip' => $this->request->getClientIp(),
                 'userId' => $userId,
                 'anonymous' => $anonymous,
-                'password' => $password
+                'password' => $password,
             ]
         );
 
@@ -115,7 +115,7 @@ class ImagesController extends Base\ApiController
 
         $response = [
             'image' => $image,
-            'success' => true
+            'success' => true,
         ];
 
         if ($key) {
@@ -126,12 +126,12 @@ class ImagesController extends Base\ApiController
     }
 
     /**
-     * @api {get} /images/{imageId} Get Image Info
-     * @apiGroup Images
+     * @api            {get} /images/{imageId} Get Image Info
+     * @apiGroup       Images
      * @apiDescription Get the stored metadata for an image.
      *     <br/>If an image is anonymous the `userId` value will set to `null` unless a valid `sessionKey`
      *     for the owner of the image is given.
-     * @apiUse RequiresViewableImage
+     * @apiUse         RequiresViewableImage
      * @apiSuccessExample {json} Success Response
      *     {
      *       "image": {
@@ -196,8 +196,71 @@ class ImagesController extends Base\ApiController
     }
 
     /**
-     * @api {put} /images/{imageId} Update Image Info
-     * @apiGroup Images
+     * @api            {get} /images/{imageId}/image View an Image
+     * @apiGroup       Images
+     * @apiDescription Returns an HTTP 302 redirect to the image file.
+     * @apiUse         RequiresViewableImage
+     * @apiParam {boolean=0,1} [display=0] Display the image now at this URL instead of redirecting.
+     *     This can be useful for testing but do not use it in production as it is not cached!
+     *
+     * @param Image       $image
+     * @param FileManager $fileManager
+     *
+     * @return Response
+     */
+    public function showImage(Image $image, FileManager $fileManager)
+    {
+        $this->requireViewableModel($image);
+
+        $imageFile = $image->getImageFile();
+
+        if (!$imageFile) {
+            // This is a 500 instead of a 404 because we really should have the image...
+            throw new HttpException(500, "Unable to load the file for this image.");
+        }
+
+        if (Input::has('display')) {
+            $picture = $fileManager->getPictureForImageFile($imageFile);
+
+            return $picture->response();
+        }
+
+        return new RedirectResponse($imageFile->getUrl());
+    }
+
+    /**
+     * @api            {get} /images/{imageId}/thumbnail View a Thumbnail
+     * @apiGroup       Images
+     * @apiDescription Returns an HTTP 302 redirect to the thumbnail image file. The thumbnail is 200x200px
+     * @apiUse         RequiresViewableImage
+     *
+     * @param Image       $image
+     * @param FileManager $fileManager
+     *
+     * @return Response
+     */
+    public function showThumbnail(Image $image, FileManager $fileManager)
+    {
+        $this->requireViewableModel($image);
+
+        $thumbnailImageFile = $image->getThumbnailImageFile();
+
+        if (!$thumbnailImageFile) {
+            throw new NotFoundHttpException("There is no thumbnail for this image.");
+        }
+
+        if (Input::has('display')) {
+            $picture = $fileManager->getPictureForImageFile($thumbnailImageFile);
+
+            return $picture->response();
+        }
+
+        return new RedirectResponse($thumbnailImageFile->getUrl());
+    }
+
+    /**
+     * @api            {put} /images/{imageId} Update Image Info
+     * @apiGroup       Images
      * @apiDescription Update the stored metadata for an image.
      * @apiParam {string} [title] Title for the image. Give a blank value to clear.
      * @apiParam {boolean=0,1} [anonymous=0] Hide the name of the uploader? (Requires authentication)
@@ -205,10 +268,10 @@ class ImagesController extends Base\ApiController
      *      (Requires authentication)
      * @apiParam {int} [albumId] An album that the image should be moved to. Give a blank value to remove from album.
      *      (Requires authentication)
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param Image $image
+     * @param Image          $image
      * @param PasswordHasher $passwordHasher
      *
      * @return Response
@@ -223,7 +286,7 @@ class ImagesController extends Base\ApiController
                 'title' => 'max:10',
                 'anonymous' => 'boolean',
                 'password' => '',
-                'sessionKey' => 'required_with:anonymous,password,albumId'
+                'sessionKey' => 'required_with:anonymous,password,albumId',
             ]
         );
 
@@ -232,7 +295,7 @@ class ImagesController extends Base\ApiController
                 $this->validate(
                     $this->request,
                     [
-                        'albumId' => 'exists:albums,albumId,userId,'.$this->user->getId()
+                        'albumId' => 'exists:albums,albumId,userId,'.$this->user->getId(),
                     ]
                 );
                 $image->albumId = $albumId;
@@ -263,11 +326,11 @@ class ImagesController extends Base\ApiController
     }
 
     /**
-     * @api {delete} /images/{imageId} Delete an Image
-     * @apiGroup Images
+     * @api            {delete} /images/{imageId} Delete an Image
+     * @apiGroup       Images
      * @apiDescription Delete an image.
-     * @apiUse RequiresEditableImage
-     * @apiUse GenericSuccessResponse
+     * @apiUse         RequiresEditableImage
+     * @apiUse         GenericSuccessResponse
      *
      * @param Image $image
      *
@@ -281,40 +344,7 @@ class ImagesController extends Base\ApiController
     }
 
     /**
-     * @api {get} /images/{imageId}/image View an Image
-     * @apiGroup Images
-     * @apiDescription Returns an HTTP 302 redirect to the image file.
-     * @apiUse RequiresViewableImage
-     * @apiParam {boolean=0,1} [display=0] Display the image now at this URL instead of redirecting.
-     *     This can be useful for testing but do not use it in production as it is not cached!
-     *
-     * @param Image $image
-     * @param FileManager $fileManager
-     *
-     * @return Response
-     */
-    public function showImage(Image $image, FileManager $fileManager)
-    {
-        $this->requireViewableModel($image);
-
-        $imageFile = $image->getImageFile();
-
-        if (!$imageFile) {
-            // This is a 500 instead of a 404 because we really should have the image...
-            throw new HttpException(500, "Unable to load the file for this image.");
-        }
-
-        if (Input::has('display')) {
-            $picture = $fileManager->getPictureForImageFile($imageFile);
-
-            return $picture->response();
-        }
-
-        return new RedirectResponse($imageFile->getUrl());
-    }
-
-    /**
-     * @param Image $image
+     * @param Image       $image
      * @param FileManager $fileManager
      *
      * @return Response
@@ -326,11 +356,19 @@ class ImagesController extends Base\ApiController
         $this->validate(
             $this->request,
             [
-                'action' => 'required|string|in:rotate,revert'
+                'action' => 'required|string|in:annotate,crop,revert,rotate',
             ]
         );
 
         switch ($this->request->input('action')) {
+            case 'annotate':
+                $pictureFactory = app('PictureFactory');
+
+                return $this->annotate($image, $fileManager, $pictureFactory);
+                break;
+            case 'crop':
+                return $this->crop($image, $fileManager);
+                break;
             case 'revert':
                 return $this->revert($image, $fileManager);
                 break;
@@ -343,74 +381,32 @@ class ImagesController extends Base\ApiController
     }
 
     /**
-     * @api {put} /images/{imageId}/image Revert an Image
-     * @apiGroup Manipulating Images
-     * @apiDescription Revert the changes made by a prior crop/annotate operation.
-     *     Returns an error if the image is not altered.
-     *     This does not undo rotation - you can rotate it back to the original orientation.
-     * @apiParam {string=revert} action Action to perform.
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @api            {post} /images/{imageId}/image?action=annotate Create an Annotation
+     * @apiGroup       Manipulating Images
+     * @apiDescription Superimpose the given image (a base64 encoded string) on top of the existing image.
+     * @apiParam {string} base64 Base64 encoded image to use as the annotation. This does not have to have the same
+     *     dimensions as the image, but it must be the same ratio. It will be resized to the size of the image.
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param Image $image
-     * @param FileManager $fileManager
+     * @param Image          $image
+     * @param FileManager    $fileManager
+     * @param PictureFactory $pictureFactory
      *
+     * @throws \Exception
      * @return Response
      */
-    protected function revert(Image $image, FileManager $fileManager)
-    {
+    protected function annotate(
+        Image $image,
+        FileManager $fileManager,
+        PictureFactory $pictureFactory
+    ) {
         $this->requireEditableImage($image);
 
-       if ($image->operationInProgress) {
-            throw new HttpException(409, "Another operation is currently in progress for this image.");
-        }
-        $image->operationInProgress = true;
-        $image->save();
-
-        if (!$image->hasOriginal()) {
-            throw new HttpException(400, "Image is not altered.");
-        }
-
-        $originalImageFile = $image->getUncroppedImageFile();
-        if (!$originalImageFile) {
-            throw new HttpException(500, "Unable to find original image.");
-        }
-
-        // Copy back uncropped image
-        $fileManager->moveFile($originalImageFile, FileManager::IMAGE_DIR);
-
-        $image->setImageFile($originalImageFile);
-        $image->setUncroppedImageFile(null);
-        $image->operationInProgress = false;
-        $success = $image->save();
-
-        return $this->response(['success' => $success, 'image' => $image->fresh()]);
-    }
-
-    /**
-     * @api {put} /images/{imageId}/image Rotate an Image
-     * @apiGroup Manipulating Images
-     * @apiDescription Rotate an image clockwise or counter-clockwise.
-     * @apiParam {string=rotate} action Action to perform.
-     * @apiParam {int=90,180,270} degrees Degrees to rotate by.
-     * @apiParam {string=cw,ccw} [direction=cw] Direction to rotate in (clockwise or counter-clockwise respectively).
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
-     *
-     * @param Image $image
-     * @param FileManager $fileManager
-     *
-     * @throws Exception
-     * @return Response
-     */
-    protected function rotate(Image $image, FileManager $fileManager)
-    {
-        $success = false;
         $this->validate(
             $this->request,
             [
-                'degrees' => 'required|integer|in:90,180,270',
-                'direction' => 'in:cw,ccw'
+                'base64' => 'required|string',
             ]
         );
 
@@ -420,76 +416,63 @@ class ImagesController extends Base\ApiController
         $image->operationInProgress = true;
         $image->save();
 
-        $degrees = (int)$this->request->input('degrees');
-        $direction = $this->request->has('direction') ? $this->request->input('direction') : 'cw';
+        $originalImageFile = $image->getImageFile();
+        $annotationPicture = $pictureFactory->createFromBase64String($this->request->input('base64'));
 
-        if ($direction === 'cw') {
-            $degrees = -$degrees;
+        // Make sure the annotation can be resized to the image's size nicely
+        $annotationRatio = round($annotationPicture->width() / $annotationPicture->height(), 2);
+        $imageRatio = round($originalImageFile->width / $originalImageFile->height, 2);
+        if ($annotationRatio !== $imageRatio) {
+            throw new HttpException(
+                422,
+                "The annotation's ratio ({$annotationRatio}) is not the same as the image's ratio ({$imageRatio})."
+            );
         }
 
-        $picture = $fileManager->getPictureForImageFile($image->imageFile);
+        $originalPicture = $fileManager->getPictureForImageFile($originalImageFile);
+        $image->moveOriginalFile($fileManager);
 
-        $picture->rotate($degrees);
+        // Resize annotation to the size of the image
+        $annotationPicture->resize($originalImageFile->width, $originalImageFile->height);
 
-        if ($newImageFile = $fileManager->savePicture($picture)) {
-            $image->setImageFile($newImageFile);
-            $image->operationInProgress = false;
-            $success = $image->save();
-        }
+        // Add the annotation on top of the original
+        $originalPicture->insert($annotationPicture);
+
+        $newFile = $fileManager->savePicture(
+            $originalPicture,
+            FileManager::IMAGE_DIR,
+            null,
+            $image->getUncroppedImageFile()
+        );
+
+        $image->setImageFile($newFile);
+        $image->operationInProgress = false;
+        $success = $image->save();
 
         return $this->response(['success' => $success, 'image' => $image->fresh()]);
     }
 
     /**
-     * @api {get} /images/{imageId}/thumbnail View a Thumbnail
-     * @apiGroup Images
-     * @apiDescription Returns an HTTP 302 redirect to the thumbnail image file. The thumbnail is 200x200px
-     * @apiUse RequiresViewableImage
-     *
-     * @param Image $image
-     * @param FileManager $fileManager
-     *
-     * @return Response
-     */
-    public function showThumbnail(Image $image, FileManager $fileManager)
-    {
-        $this->requireViewableModel($image);
-
-        $thumbnailImageFile = $image->getThumbnailImageFile();
-
-        if (!$thumbnailImageFile) {
-            throw new NotFoundHttpException("There is no thumbnail for this image.");
-        }
-
-        if (Input::has('display')) {
-            $picture = $fileManager->getPictureForImageFile($thumbnailImageFile);
-
-            return $picture->response();
-        }
-
-        return new RedirectResponse($thumbnailImageFile->getUrl());
-    }
-
-    /**
-     * @api {post} /images/{imageId}/crop Crop an Image
-     * @apiGroup Manipulating Images
+     * @api            {put} /images/{imageId}/image?action=crop Crop an Image
+     * @apiGroup       Manipulating Images
      * @apiDescription Crops out a portion of the image.
      *     See [Uncrop An Image](#api-Manipulating_Images-DeleteImagesIdCrop) to undo.
      *     If the image is already cropped an error will be returned.
+     * @apiParam {string=crop} action Action to perform.
      * @apiParam {int} width Width of the rectangular cutout.
      * @apiParam {int} height Height of the rectangular cutout.
      * @apiParam {int} [x=0] X-Coordinate of the top-left corner of the rectangular cutout.
      * @apiParam {int} [y=0] Y-Coordinate of the top-left corner of the rectangular cutout.
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param Image $image
+     * @param Image       $image
      * @param FileManager $fileManager
      *
      * @throws Exception
      * @return Response
      */
-    public function storeCrop(Image $image, FileManager $fileManager)
+    protected function crop(Image $image, FileManager $fileManager)
     {
         $this->requireEditableImage($image);
 
@@ -516,13 +499,8 @@ class ImagesController extends Base\ApiController
         $image->operationInProgress = true;
         $image->save();
 
-        if (!$image->hasOriginal()) {
-            // Backup uncropped image
-            $fileManager->moveFile($originalImageFile, FileManager::UNCROPPED_DIR);
-            $image->setUncroppedImageFile($originalImageFile);
-        }
-
         $picture = $fileManager->getPictureForImageFile($originalImageFile);
+        $image->moveOriginalFile($fileManager);
 
         $width = $this->request->input('width');
         $height = $this->request->input('height');
@@ -532,7 +510,7 @@ class ImagesController extends Base\ApiController
 
         $picture->crop($width, $height, $xPos, $yPos);
 
-        $newFile = $fileManager->savePicture($picture, FileManager::IMAGE_DIR, null, $originalImageFile);
+        $newFile = $fileManager->savePicture($picture, FileManager::IMAGE_DIR, null, $image->getUncroppedImageFile());
 
         $image->setImageFile($newFile);
         $image->operationInProgress = false;
@@ -542,30 +520,23 @@ class ImagesController extends Base\ApiController
     }
 
     /**
-     * @api {delete} /images/{imageId}/crop Uncrop an Image
-     * @apiGroup Manipulating Images
-     * @apiDescription Revert the changes made by a prior crop operation.
-     *     Returns an error if the image is not cropped.
-     * @apiUse RequiresEditableImage
-     * @apiUse ImageSuccessResponse
+     * @api            {put} /images/{imageId}/image?action=revert Revert an Image
+     * @apiGroup       Manipulating Images
+     * @apiDescription Revert the changes made by a prior crop/annotate operation.
+     *     Returns an error if the image is not altered.
+     *     This does not undo rotation - you can rotate it back to the original orientation.
+     * @apiParam {string=revert} action Action to perform.
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
      *
-     * @param Image $image
+     * @param Image       $image
      * @param FileManager $fileManager
      *
      * @return Response
      */
-    public function destroyCrop(Image $image, FileManager $fileManager)
+    protected function revert(Image $image, FileManager $fileManager)
     {
         $this->requireEditableImage($image);
-
-        if (!$image->hasOriginal()) {
-            throw new HttpException(400, "Image is not cropped.");
-        }
-
-        $uncroppedImageFile = $image->getUncroppedImageFile();
-        if (!$uncroppedImageFile) {
-            throw new HttpException(500, "Unable to find original (uncropped) image.");
-        }
 
         if ($image->operationInProgress) {
             throw new HttpException(409, "Another operation is currently in progress for this image.");
@@ -573,13 +544,75 @@ class ImagesController extends Base\ApiController
         $image->operationInProgress = true;
         $image->save();
 
-        // Copy back uncropped image
-        $fileManager->moveFile($uncroppedImageFile, FileManager::IMAGE_DIR);
+        if (!$image->hasOriginal()) {
+            throw new HttpException(400, "Image is not altered.");
+        }
 
-        $image->setImageFile($uncroppedImageFile);
+        $originalImageFile = $image->getUncroppedImageFile();
+        if (!$originalImageFile) {
+            throw new HttpException(500, "Unable to find original image.");
+        }
+
+        // Copy back uncropped image
+        $fileManager->moveFile($originalImageFile, FileManager::IMAGE_DIR);
+
+        $image->setImageFile($originalImageFile);
         $image->setUncroppedImageFile(null);
         $image->operationInProgress = false;
         $success = $image->save();
+
+        return $this->response(['success' => $success, 'image' => $image->fresh()]);
+    }
+
+    /**
+     * @api            {put} /images/{imageId}/image?action=rotate Rotate an Image
+     * @apiGroup       Manipulating Images
+     * @apiDescription Rotate an image clockwise or counter-clockwise.
+     * @apiParam {string=rotate} action Action to perform.
+     * @apiParam {int=90,180,270} degrees Degrees to rotate by.
+     * @apiParam {string=cw,ccw} [direction=cw] Direction to rotate in (clockwise or counter-clockwise respectively).
+     * @apiUse         RequiresEditableImage
+     * @apiUse         ImageSuccessResponse
+     *
+     * @param Image       $image
+     * @param FileManager $fileManager
+     *
+     * @throws Exception
+     * @return Response
+     */
+    protected function rotate(Image $image, FileManager $fileManager)
+    {
+        $success = false;
+        $this->validate(
+            $this->request,
+            [
+                'degrees' => 'required|integer|in:90,180,270',
+                'direction' => 'in:cw,ccw',
+            ]
+        );
+
+        if ($image->operationInProgress) {
+            throw new HttpException(409, "Another operation is currently in progress for this image.");
+        }
+        $image->operationInProgress = true;
+        $image->save();
+
+        $degrees = (int)$this->request->input('degrees');
+        $direction = $this->request->has('direction') ? $this->request->input('direction') : 'cw';
+
+        if ($direction === 'cw') {
+            $degrees = -$degrees;
+        }
+
+        $picture = $fileManager->getPictureForImageFile($image->imageFile);
+
+        $picture->rotate($degrees);
+
+        if ($newImageFile = $fileManager->savePicture($picture)) {
+            $image->setImageFile($newImageFile);
+            $image->operationInProgress = false;
+            $success = $image->save();
+        }
 
         return $this->response(['success' => $success, 'image' => $image->fresh()]);
     }

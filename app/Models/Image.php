@@ -5,36 +5,37 @@ namespace CtrlV\Models;
 use Auth;
 use Config;
 use CtrlV\Jobs\MakeThumbnailJob;
+use CtrlV\Libraries\FileManager;
 use CtrlV\Libraries\PasswordHasher;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
 /**
  * CtrlV\Models\Image
  *
- * @property integer $imageId
- * @property integer $imageFileId
- * @property integer $thumbnailImageFileId
- * @property integer $annotationImageFileId
- * @property integer $uncroppedImageFileId
- * @property integer $albumId
- * @property string $via
- * @property string $ip
- * @property integer $userId
- * @property string $key
- * @property string $title
- * @property integer $anonymous
- * @property string $password
- * @property integer $views
- * @property integer $batchId
- * @property boolean $operationInProgress
- * @property \Carbon\Carbon $expiresAt
- * @property \Carbon\Carbon $createdAt
- * @property \Carbon\Carbon $updatedAt
+ * @property integer                      $imageId
+ * @property integer                      $imageFileId
+ * @property integer                      $thumbnailImageFileId
+ * @property integer                      $annotationImageFileId
+ * @property integer                      $uncroppedImageFileId
+ * @property integer                      $albumId
+ * @property string                       $via
+ * @property string                       $ip
+ * @property integer                      $userId
+ * @property string                       $key
+ * @property string                       $title
+ * @property integer                      $anonymous
+ * @property string                       $password
+ * @property integer                      $views
+ * @property integer                      $batchId
+ * @property boolean                      $operationInProgress
+ * @property \Carbon\Carbon               $expiresAt
+ * @property \Carbon\Carbon               $createdAt
+ * @property \Carbon\Carbon               $updatedAt
  * @property-read \CtrlV\Models\ImageFile $imageFile
  * @property-read \CtrlV\Models\ImageFile $thumbnailImageFile
  * @property-read \CtrlV\Models\ImageFile $annotationImageFile
  * @property-read \CtrlV\Models\ImageFile $uncroppedImageFile
- * @property-read \CtrlV\Models\Album $album
+ * @property-read \CtrlV\Models\Album     $album
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereImageId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereImageFileId($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\Image whereThumbnailImageFileId($value)
@@ -82,7 +83,7 @@ class Image extends Base\BaseModel
      * @var array
      */
     protected $dates = [
-        'expiresAt'
+        'expiresAt',
     ];
 
     /**
@@ -104,7 +105,7 @@ class Image extends Base\BaseModel
         'thumbnailImageFileId',
         'uncroppedImageFile',
         'uncroppedImageFileId',
-        'via'
+        'via',
     ];
 
     /**
@@ -219,6 +220,28 @@ class Image extends Base\BaseModel
     public function hasOriginal()
     {
         return !is_null($this->uncroppedImageFileId);
+    }
+
+    /**
+     * If this image doesn't already have an original image file backed up,
+     * move the current image file to be the backup.
+     *
+     * @param FileManager $fileManager
+     *
+     * @return bool
+     */
+    public function moveOriginalFile(FileManager $fileManager)
+    {
+        if ($this->hasOriginal()) {
+            return true;
+        }
+
+        // Backup uncropped image
+        $originalImageFile = $this->getImageFile();
+        $fileManager->moveFile($originalImageFile, FileManager::UNCROPPED_DIR);
+        $this->setUncroppedImageFile($originalImageFile);
+
+        return true;
     }
 
     /**

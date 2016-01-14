@@ -9,18 +9,18 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 /**
  * CtrlV\Models\ImageFile
  *
- * @property integer $imageFileId
- * @property integer $originalImageFileId
- * @property string $directory
- * @property string $filename
- * @property boolean $optimized
- * @property boolean $copied
- * @property integer $width
- * @property integer $height
- * @property integer $size
- * @property integer $optimizedSize
- * @property \Carbon\Carbon $createdAt
- * @property \Carbon\Carbon $updatedAt
+ * @property integer                          $imageFileId
+ * @property integer                          $originalImageFileId
+ * @property string                           $directory
+ * @property string                           $filename
+ * @property boolean                          $optimized
+ * @property boolean                          $copied
+ * @property integer                          $width
+ * @property integer                          $height
+ * @property integer                          $size
+ * @property integer                          $optimizedSize
+ * @property \Carbon\Carbon                   $createdAt
+ * @property \Carbon\Carbon                   $updatedAt
  * @property-read \CtrlV\Models\ImageFileText $text
  * @property-read \CtrlV\Models\ImageFileText $originalImageFile
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\ImageFile whereImageFileId($value)
@@ -53,7 +53,7 @@ class ImageFile extends Base\BaseModel
         'height' => 'int',
         'size' => 'int',
         'optimizedSize' => 'int',
-        'originalImageFileId' => 'int'
+        'originalImageFileId' => 'int',
     ];
 
     /**
@@ -70,7 +70,7 @@ class ImageFile extends Base\BaseModel
         'imageFileId',
         'originalImageFileId',
         'optimized',
-        'optimizedSize'
+        'optimizedSize',
     ];
 
     /**

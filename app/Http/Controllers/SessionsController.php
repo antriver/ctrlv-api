@@ -12,8 +12,8 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class SessionsController extends Base\ApiController
 {
     /**
-     * @api {get} /sessions/{sessionKey} Get Session Info
-     * @apiGroup User Sessions
+     * @api            {get} /sessions/{sessionKey} Get Session Info
+     * @apiGroup       User Sessions
      * @apiDescription Returns information about a user's session.
      *
      * @param UserSession $session
@@ -33,8 +33,8 @@ class SessionsController extends Base\ApiController
     }
 
     /**
-     * @api {post} /sessions Start a Session (Login)
-     * @apiGroup User Sessions
+     * @api            {post} /sessions Start a Session (Login)
+     * @apiGroup       User Sessions
      * @apiDescription Validates login credentials and returns a new session if valid.
      * @apiParam {string} username Username to login as.
      * @apiParam {string} password The user's password.
@@ -50,7 +50,7 @@ class SessionsController extends Base\ApiController
             $this->request,
             [
                 'username' => 'required',
-                'password' => 'required'
+                'password' => 'required',
             ]
         );
 
@@ -63,7 +63,7 @@ class SessionsController extends Base\ApiController
             throw new InputException(
                 404,
                 [
-                    'username' => ["Couldn't find a user with that username."]
+                    'username' => ["Couldn't find a user with that username."],
                 ]
             );
         }
@@ -75,7 +75,7 @@ class SessionsController extends Base\ApiController
             $session = new UserSession(
                 [
                     'userId' => $user->userId,
-                    'ip' => $this->request->getClientIp()
+                    'ip' => $this->request->getClientIp(),
                 ]
             );
 
@@ -87,22 +87,22 @@ class SessionsController extends Base\ApiController
                 [
                     'session' => $session,
                     'sessionKey' => $sessionKey,
-                    'success' => true
+                    'success' => true,
                 ]
             );
         } else {
             throw new InputException(
                 401,
                 [
-                    'password' => ["That password is not correct."]
+                    'password' => ["That password is not correct."],
                 ]
             );
         }
     }
 
     /**
-     * @api {delete} /sessions/{sessionKey} End A Session (Logout)
-     * @apiGroup User Sessions
+     * @api            {delete} /sessions/{sessionKey} End A Session (Logout)
+     * @apiGroup       User Sessions
      * @apiDescription Deletes a user's session.
      *
      * @param UserSession $session
@@ -115,7 +115,7 @@ class SessionsController extends Base\ApiController
 
         return $this->response(
             [
-                'success' => $success
+                'success' => $success,
             ]
         );
     }

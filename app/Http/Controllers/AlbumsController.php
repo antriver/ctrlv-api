@@ -20,9 +20,9 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 class AlbumsController extends Base\ApiController
 {
     /**
-     * @api {get} /albums/{albumId} Get Album Info
-     * @apiGroup Albums
-     * @apiDescription Get information about an album.
+     * @api               {get} /albums/{albumId} Get Album Info
+     * @apiGroup          Albums
+     * @apiDescription    Get information about an album.
      * @apiSuccessExample Success Response
      *     {
      *       "album": {
@@ -47,12 +47,12 @@ class AlbumsController extends Base\ApiController
     }
 
     /**
-     * @api {post} /albums Create an Album
-     * @apiGroup Albums
+     * @api            {post} /albums Create an Album
+     * @apiGroup       Albums
      * @apiDescription Create a new album to group images together.
      * @apiParam {string} title Title of the album.
-     * @apiUse RequiresAuthentication
-     * @apiUse AlbumSuccessResponse
+     * @apiUse         RequiresAuthentication
+     * @apiUse         AlbumSuccessResponse
      * @return Response
      */
     public function store()
@@ -62,7 +62,7 @@ class AlbumsController extends Base\ApiController
         $this->validate(
             $this->request,
             [
-                'title' => 'required|string|max:100|unique:albums,title,null,album_id,userId,'.$user->userId
+                'title' => 'required|string|max:100|unique:albums,title,null,album_id,userId,'.$user->userId,
             ]
         );
 
@@ -77,7 +77,7 @@ class AlbumsController extends Base\ApiController
             return $this->response(
                 [
                     'album' => $album->fresh(),
-                    'success' => true
+                    'success' => true,
                 ]
             );
         }
@@ -86,8 +86,8 @@ class AlbumsController extends Base\ApiController
     }
 
     /**
-     * @api {put} /albums/{albumId} Update Album Info
-     * @apiGroup Albums
+     * @api            {put} /albums/{albumId} Update Album Info
+     * @apiGroup       Albums
      * @apiDescription Update the stored metadata for an album.
      * @apiParam {string} [title] New title of the album.
      * @apiParam {boolean=0,1} [anonymous=0] Hide the name of the album owner?
@@ -95,10 +95,10 @@ class AlbumsController extends Base\ApiController
      *     Give a blank value to clear.
      *     <br/>**If an image is in an album the anonymous setting and password for the album apply instead of
      *     the images own settings.**
-     * @apiUse RequiresAuthentication
-     * @apiUse AlbumSuccessResponse
+     * @apiUse         RequiresAuthentication
+     * @apiUse         AlbumSuccessResponse
      *
-     * @param Album $album
+     * @param Album          $album
      * @param PasswordHasher $passwordHasher
      *
      * @return Response
@@ -112,7 +112,7 @@ class AlbumsController extends Base\ApiController
             [
                 'title' => 'string|max:100|unique:albums,title,'.$album->albumId.',albumId,userId,'.$user->userId,
                 'anonymous' => 'boolean',
-                'password' => ''
+                'password' => '',
             ]
         );
 
@@ -136,7 +136,7 @@ class AlbumsController extends Base\ApiController
             return $this->response(
                 [
                     'album' => $album->fresh(),
-                    'success' => true
+                    'success' => true,
                 ]
             );
         }
@@ -145,11 +145,11 @@ class AlbumsController extends Base\ApiController
     }
 
     /**
-     * @api {delete} /albums/{albumId} Delete an Album
-     * @apiGroup Albums
+     * @api            {delete} /albums/{albumId} Delete an Album
+     * @apiGroup       Albums
      * @apiDescription Delete a album. This does not delete the images that were in it.
-     * @apiUse RequiresAuthentication
-     * @apiUse GenericSuccessResponse
+     * @apiUse         RequiresAuthentication
+     * @apiUse         GenericSuccessResponse
      *
      * @param Album $album
      *

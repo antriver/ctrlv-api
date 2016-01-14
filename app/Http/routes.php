@@ -25,7 +25,7 @@ $router->get('uploader/blank', ['uses' => 'UploaderController@getBlank']);
 
 $router->group(
     [
-        'prefix' => 'v1.1'
+        'prefix' => 'v1.1',
     ],
     function (Router $router) {
         $router->post('albums', ['uses' => 'AlbumsController@store']);
@@ -42,14 +42,8 @@ $router->group(
 
         $router->get('images/{image}/image', ['uses' => 'ImagesController@showImage']);
         $router->put('images/{image}/image', ['uses' => 'ImagesController@updateImage']);
+
         $router->get('images/{image}/thumbnail', ['uses' => 'ImagesController@showThumbnail']);
-
-        $router->post('images/{image}/crop', ['uses' => 'ImagesController@storeCrop']);
-        $router->delete('images/{image}/crop', ['uses' => 'ImagesController@destroyCrop']);
-
-        $router->post('images/{image}/annotation', ['uses' => 'AnnotationController@store']);
-        $router->get('images/{image}/annotation', ['uses' => 'AnnotationController@show']);
-        $router->delete('images/{image}/annotation', ['uses' => 'AnnotationController@destroy']);
 
         $router->get('images/{image}/text', ['uses' => 'ImageTextController@show']);
 

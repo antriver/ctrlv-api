@@ -17,9 +17,12 @@ class InputException extends HttpException
         $this->messages = $messages;
 
         $flattenedMessages = [];
-        array_walk_recursive($messages, function($a) use (&$flattenedMessages) {
-            $flattenedMessages[] = $a;
-        });
+        array_walk_recursive(
+            $messages,
+            function ($a) use (&$flattenedMessages) {
+                $flattenedMessages[] = $a;
+            }
+        );
         $message = implode(' ', $flattenedMessages);
 
         parent::__construct($statusCode, $message);

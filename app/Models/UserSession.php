@@ -7,11 +7,11 @@ use CtrlV\Libraries\PasswordHasher;
 /**
  * CtrlV\Models\UserSession
  *
- * @property string $sessionKey
- * @property integer $userId
- * @property string $ip
- * @property \Carbon\Carbon $createdAt
- * @property \Carbon\Carbon $updatedAt
+ * @property string                  $sessionKey
+ * @property integer                 $userId
+ * @property string                  $ip
+ * @property \Carbon\Carbon          $createdAt
+ * @property \Carbon\Carbon          $updatedAt
  * @property-read \CtrlV\Models\User $user
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\UserSession whereSessionKey($value)
  * @method static \Illuminate\Database\Query\Builder|\CtrlV\Models\UserSession whereUserId($value)
@@ -27,7 +27,7 @@ class UserSession extends Base\BaseModel
      * @var array
      */
     protected $hidden = [
-        'sessionKey'
+        'sessionKey',
     ];
 
     /**
