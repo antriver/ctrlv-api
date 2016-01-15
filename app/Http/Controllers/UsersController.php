@@ -96,6 +96,9 @@ class UsersController extends Base\ApiController
      */
     public function show(User $user)
     {
+        $user->load('albums');
+        // TODO: Album privacy check
+
         return $this->response(
             [
                 'user' => $user,

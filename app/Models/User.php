@@ -98,7 +98,7 @@ class User extends Base\BaseModel implements AuthenticatableContract, CanResetPa
      */
     public function albums()
     {
-        return $this->hasMany('\CtrlV\Models\Album', 'userId', 'userId');
+        return $this->hasMany('\CtrlV\Models\Album', 'userId', 'userId')->orderBy('title', 'ASC');
     }
 
     /**

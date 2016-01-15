@@ -43,6 +43,9 @@ class AlbumsController extends Base\ApiController
     {
         $this->requireViewableModel($album);
 
+        // Privacy check here
+        $album->load('user', 'user.albums');
+
         return $this->response(['album' => $album]);
     }
 
