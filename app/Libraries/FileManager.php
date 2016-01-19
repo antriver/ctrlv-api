@@ -120,6 +120,27 @@ class FileManager
     }
 
     /**
+     * Touches a new file and returns the filename.
+     *
+     * @param $directory
+     * @param $extension
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function prepareLocalFile($directory, $extension)
+    {
+        $filename = $this->generateFilename($extension);
+        $relativePath = $directory.'/'.$filename;
+        $this->createLocalDirectory(dirname($relativePath));
+
+        if (touch($this->localDataDirectory.$relativePath)) {
+            return $filename;
+        }
+        throw new \Exception("Unable to generate file.");
+    }
+
+    /**
      * Save a file in the local filesystem.
      *
      * @param string $contents

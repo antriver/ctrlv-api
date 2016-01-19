@@ -38,7 +38,6 @@ class MakeThumbnail extends Command
         $image = Image::findOrFail($this->argument('imageId'));
 
         if (!empty($image->thumbnailImageFileId)) {
-
             if (!$this->option('regenerate')) {
                 throw new Exception("Image already has a thumbnail and --regenerate was not set");
             }

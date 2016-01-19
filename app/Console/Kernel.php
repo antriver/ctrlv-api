@@ -13,6 +13,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
+        \CtrlV\Console\Commands\Albums\MakeThumbnail::class,
+        \CtrlV\Console\Commands\Albums\MakeUserThumbnails::class,
         \CtrlV\Console\Commands\Images\Delete::class,
         \CtrlV\Console\Commands\Images\DeleteExpired::class,
         \CtrlV\Console\Commands\Images\MakeThumbnail::class,

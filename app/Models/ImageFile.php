@@ -103,6 +103,11 @@ class ImageFile extends Base\BaseModel
         return $this->directory.'/'.$this->filename;
     }
 
+    public function getAbsolutePath()
+    {
+        return Config::get('app.data_dir').$this->directory.'/'.$this->filename;
+    }
+
     /**
      * @return string
      */
