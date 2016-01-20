@@ -251,7 +251,7 @@ abstract class ApiController extends BaseController
             }
         }
 
-        throw new HttpException(403, "You don't have permission to modify that image.");
+        throw new HttpException(403, "You don't have permission to modify that image ({$image->imageId}).");
     }
 
     protected function paginatorToArray(LengthAwarePaginator $paginator, $dataKey = 'items')
@@ -278,5 +278,32 @@ abstract class ApiController extends BaseController
         }
 
         return 15;
+    }
+
+    /**
+     * Returns the Image objects for the imageIds list in the request.
+     *
+     * @return Image[]
+     */
+    protected function getMultipleImageInput()
+    {
+        $this->validate(
+            $this->request,
+            [
+                'imageIds' => 'required|string',
+            ]
+        );
+
+        $imageIds = explode(',', $this->request->input('imageIds'));
+        $images = [];
+        foreach ($imageIds as $imageId) {
+            if ($image = Image::find($imageId)) {
+                /** @var Image $image */
+                $this->requireEditableImage($image);
+            } else {
+                throw new NotFoundHttpException("Image {$imageId} does not exist.");
+            }
+        }
+        return $images;
     }
 }

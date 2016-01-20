@@ -40,6 +40,9 @@ $router->group(
         $router->put('images/{image}', ['uses' => 'ImagesController@update']);
         $router->delete('images/{image}', ['uses' => 'ImagesController@destroy']);
 
+        $router->delete('images', ['uses' => 'ImagesController@destroyMultiple']);
+        $router->put('images', ['uses' => 'ImagesController@updateMultiple']);
+
         $router->get('images/{image}/image', ['uses' => 'ImagesController@showImage']);
         $router->put('images/{image}/image', ['uses' => 'ImagesController@updateImage']);
 

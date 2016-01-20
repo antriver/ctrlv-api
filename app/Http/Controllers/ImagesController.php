@@ -344,6 +344,31 @@ class ImagesController extends Base\ApiController
     }
 
     /**
+     * @api            {delete} /images Delete Multiple Images
+     * @apiGroup       Images
+     * @apiDescription Delete multiple images at the same time.
+     * @apiParam {string} imageIds Comma separated list of image IDs
+     * @apiUse         RequiresAuthentication
+     * @apiUse         GenericSuccessResponse
+     *
+     * @return Response
+     */
+    public function destroyMultiple()
+    {
+        $images = $this->getMultipleImageInput();
+
+        $deleted = 0;
+        foreach ($images as $image) {
+            if ($image->delete()) {
+                ++$deleted;
+            }
+        }
+
+        $success = $deleted === count($images);
+        return $this->response(['deleted' => $deleted, 'success' => $success]);
+    }
+
+    /**
      * @param Image       $image
      * @param FileManager $fileManager
      *
